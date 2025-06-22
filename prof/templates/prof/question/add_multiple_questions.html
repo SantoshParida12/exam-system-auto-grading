@@ -1,0 +1,228 @@
+{% extends 'prof/base/base.html' %}
+
+{% block title %}Add Multiple Questions{% endblock title %}
+{% block navbar_title %}{{ prof.username }}{% endblock navbar_title %}
+{% block navitem_title %}Add Multiple Questions{% endblock navitem_title %}
+
+{% block buttons %}
+    <a href="{% url 'prof:add_question' %}" class="btn btn-outline-light mx-2">
+        <i class="fa fa-plus"></i> Single Question
+    </a>
+    <a href="{% url 'prof:view_all_ques' %}" class="btn btn-outline-light mx-2">
+        <i class="fa fa-list"></i> View All Questions
+    </a>
+    <a href="{% url 'prof:index' %}" class="btn btn-outline-light">
+        <i class="fa fa-home"></i> Dashboard
+    </a>
+{% endblock buttons %}
+
+{% block body %}
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-md-12">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="fa fa-plus-circle"></i> Add Multiple Questions
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle"></i>
+                            <strong>Bulk Question Creation:</strong> Add multiple questions at once by entering them in the text area below. Each line will be treated as a separate question.
+                        </div>
+                        
+                        <form method="POST" class="mt-4">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="questions_text" class="font-weight-bold">
+                                    <i class="fa fa-question-circle text-primary"></i> Questions (One per line)
+                                </label>
+                                <textarea 
+                                    id="questions_text" 
+                                    name="questions_text" 
+                                    class="form-control" 
+                                    rows="15" 
+                                    placeholder="Enter your questions here, one per line:
+
+Example:
+1. Explain the process of photosynthesis in plants.
+2. Describe the main components of a cell and their functions.
+3. What are the three laws of motion according to Newton?
+4. How does the water cycle work in nature?
+
+You can also use numbered format or just plain text - the system will automatically detect and format them properly."
+                                    required></textarea>
+                                <small class="form-text text-muted">
+                                    <i class="fa fa-lightbulb-o"></i> 
+                                    <strong>Tip:</strong> Each line will become a separate question. You can use numbers, "Q1.", "Question 1.", or plain text format.
+                                </small>
+                            </div>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <button type="submit" class="btn btn-success btn-lg btn-block">
+                                        <i class="fa fa-save"></i> Create All Questions
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-secondary btn-lg btn-block" onclick="clearForm()">
+                                        <i class="fa fa-eraser"></i> Clear Form
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Instructions Section -->
+                <div class="card mt-4 shadow-sm border-0">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fa fa-book text-info"></i> How to Add Multiple Questions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="font-weight-bold text-primary">Supported Formats:</h6>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="fa fa-check text-success"></i> <strong>Numbered:</strong> 1. Question text
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fa fa-check text-success"></i> <strong>Q format:</strong> Q1. Question text
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fa fa-check text-success"></i> <strong>Question format:</strong> Question 1. Question text
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fa fa-check text-success"></i> <strong>Plain text:</strong> Just the question text
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="font-weight-bold text-primary">Best Practices:</h6>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="fa fa-star text-warning"></i> Write clear, specific questions
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fa fa-star text-warning"></i> Use action verbs (explain, describe, analyze)
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fa fa-star text-warning"></i> Keep questions focused and concise
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fa fa-star text-warning"></i> Review before submitting
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="card mt-4 shadow-sm border-0">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fa fa-eye text-info"></i> Live Preview
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="preview-container" class="border rounded p-3 bg-light">
+                            <p class="text-muted">Start typing questions above to see a preview here...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 12px 16px;
+            font-size: 16px;
+            transition: border-color 0.2s ease-in-out;
+            font-family: 'Courier New', monospace;
+        }
+        .form-control:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        .card {
+            border-radius: 12px;
+        }
+        .card-header {
+            border-radius: 12px 12px 0 0 !important;
+        }
+        #preview-container {
+            min-height: 100px;
+        }
+        .preview-question {
+            background: white;
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+        }
+    </style>
+
+    <script>
+        function clearForm() {
+            document.getElementById('questions_text').value = '';
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const textarea = document.getElementById('questions_text');
+            const preview = document.getElementById('preview-container');
+            const text = textarea.value.trim();
+            
+            if (!text) {
+                preview.innerHTML = '<p class="text-muted">Start typing questions above to see a preview here...</p>';
+                return;
+            }
+            
+            const lines = text.split('\n');
+            let previewHTML = '<h6 class="font-weight-bold mb-3">Preview of Questions:</h6>';
+            let questionCount = 0;
+            
+            lines.forEach((line, index) => {
+                line = line.trim();
+                if (line) {
+                    // Remove question numbers if present
+                    const cleanLine = line.replace(/^(\d+\.|Q\d+\.|Question\s*\d+\.?)\s*/i, '');
+                    if (cleanLine.length > 10) {
+                        questionCount++;
+                        previewHTML += `<div class="preview-question"><strong>Q${questionCount}:</strong> ${cleanLine}</div>`;
+                    }
+                }
+            });
+            
+            if (questionCount === 0) {
+                previewHTML = '<p class="text-warning">No valid questions found. Make sure each question is at least 10 characters long.</p>';
+            } else {
+                previewHTML += `<div class="mt-3"><small class="text-muted">Total questions to be created: ${questionCount}</small></div>`;
+            }
+            
+            preview.innerHTML = previewHTML;
+        }
+
+        // Add event listener for real-time preview
+        document.getElementById('questions_text').addEventListener('input', updatePreview);
+        
+        // Initialize preview
+        updatePreview();
+    </script>
+{% endblock body %} 

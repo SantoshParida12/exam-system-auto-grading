@@ -1,0 +1,14 @@
+{% extends 'student/base/base.html' %}
+{% block content %}
+  <h2>Your Submitted Answer</h2>
+  <p><strong>Question:</strong> {{ answer.question.question }}</p>
+  {% if answer.text_answer %}
+    <p><strong>Your Text Answer:</strong></p>
+    <div style="white-space: pre-line; border: 1px solid #ccc; padding: 10px;">{{ answer.text_answer }}</div>
+  {% endif %}
+  {% if answer.image_answer %}
+    <p><strong>Your Image Answer:</strong></p>
+    <img src="{{ answer.image_answer.url }}" alt="Image Answer" style="max-width: 400px; border: 1px solid #ccc;"/>
+  {% endif %}
+  <a href="{% url 'student:exams' %}">Back to Exams</a>
+{% endblock %} 

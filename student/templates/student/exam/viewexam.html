@@ -1,0 +1,70 @@
+{% extends 'student/base/base.html' %}
+
+{% block title %}Home{% endblock title %}
+{% block nav_title %} Exams {% endblock nav_title %}
+{% block url %}{% url 'student:index' %}{% endblock url %}
+{% block action %}Home{% endblock action %}
+
+{% block body %}
+   <div class="container-fluid my-2">
+        <!-- Debug info -->
+        <div class="alert alert-info">
+            <h4>Debug Info:</h4>
+            <p>Total exams found: {{ paper|length }}</p>
+            <p>Completed exams: {{ paper|length|add:"0" }}</p>
+            <p>Available exams: {{ paper|length|add:"0" }}</p>
+        </div>
+        
+        <div id="completed_exams" class="alert alert-primary">
+            <h3 align="center">Tests Completed</h3>
+            <ol class="list-group">
+                {% for i in paper %}
+                {% if  i.completed == 1 %}
+                <li class="list-group-item list-group-item-action my-1 text-center">
+                    <strong>{{ i.examname }}</strong>
+                    <br>
+                    <small class="text-muted">Score: {{ i.score }} | Status: Completed</small>
+                    <br>
+                    <form method="POST" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" value="{{ i.examname }}" name="paper">
+                        <input class="btn btn-warning btn-sm" type="submit" value="Retake Exam">
+                    </form>
+                </li>
+                {% endif %}
+                {% endfor %}
+            </ol>
+        </div>
+        <div id="upcoming_exams" class="my-6 alert alert-secondary">
+            <h3 align="center" >UpComing Exams</h3>
+            <ol class="list-group">
+                {% for i in paper %}
+                {% if  i.completed == 0 %}
+                    <li class="list-group-item list-group-item-action my-1 text-center">
+                        <strong>{{ i.examname }}</strong>
+                        <br>
+                        <small class="text-muted">Status: Not completed ({{ i.completed }})</small>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" value="{{ i.examname }}" name="paper">
+                            <input class="btn btn-info" type="submit" value="Attempt">
+                        </form>
+                    </li>
+                {% endif %}
+                {% endfor %}
+            </ol>
+        </div>
+        
+        <!-- Show all exams for debugging -->
+        <div class="alert alert-warning">
+            <h4>All Exams (Debug):</h4>
+            <ul>
+                {% for i in paper %}
+                <li>{{ i.examname }} - Completed: {{ i.completed }} - Score: {{ i.score }}</li>
+                {% empty %}
+                <li>No exams found</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock body %}

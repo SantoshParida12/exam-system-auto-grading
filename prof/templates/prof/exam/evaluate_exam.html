@@ -1,0 +1,74 @@
+{% extends 'prof/base/base.html' %}
+
+{% block title %}Evaluate Exam{% endblock title %}
+{% block navbar_title %}Evaluate Exam: {{ exam.name }}{% endblock navbar_title %}
+
+{% block body %}
+<div class="container-fluid">
+    <h2 class="my-3">Evaluate Student Answers for {{ exam.name }}</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Answers</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in student_data %}
+                <tr>
+                    <td>{{ entry.stu_exam.student.username }}</td>
+                    <td>
+                        <ul>
+                        {% for ans in entry.answers %}
+                            <li>
+                                <strong>Q:</strong> {{ ans.question }}<br>
+                                {% if ans.subjective_answer %}
+                                    {% if ans.subjective_answer.text_answer %}
+                                        <strong>Text Answer:</strong> {{ ans.subjective_answer.text_answer }}<br>
+                                    {% endif %}
+                                    {% if ans.subjective_answer.image_answer %}
+                                        <strong>Image Answer:</strong><br>
+                                        <img src="{{ ans.subjective_answer.image_answer.url }}" style="max-width:200px; border:1px solid #ccc;"/><br>
+                                        {% if ans.subjective_answer.ocr_text %}
+                                            <strong>OCR Extracted Text:</strong><br>
+                                            <div style="background-color: #f8f9fa; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; margin: 5px 0;">
+                                                {{ ans.subjective_answer.ocr_text }}
+                                            </div>
+                                        {% endif %}
+                                        {% if ans.subjective_answer.marks %}
+                                            <strong>Automated Marks:</strong> {{ ans.subjective_answer.marks }}/5<br>
+                                        {% endif %}
+                                        {% if ans.subjective_answer.feedback %}
+                                            <strong>Automated Feedback:</strong> {{ ans.subjective_answer.feedback }}<br>
+                                        {% endif %}
+                                    {% endif %}
+                                {% else %}
+                                    <em style="color: #dc3545;">No answer submitted.</em>
+                                    <br><small class="text-muted">Student has not provided any answer for this question yet.</small>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        <input type="number" name="score_{{ entry.stu_exam.id }}" value="{{ entry.stu_exam.score }}" min="0" class="form-control"/>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-success">Save Scores</button>
+        <a href="{% url 'prof:view_exam' exam.id %}" class="btn btn-secondary">Back to Exam</a>
+    </form>
+</div>
+{% endblock body %} 

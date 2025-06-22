@@ -1,0 +1,78 @@
+{% extends 'student/base/base.html' %}
+
+{% block title %}Result{% endblock title %}
+{% block nav_title %}{{ exam.examname }}{% endblock nav_title %}
+{% block url %}{% url 'student:index' %}{% endblock url %}
+{% block action %}Home{% endblock action %}
+
+{% block body %}
+    <div class="container-fluid my-2">
+        <h3 align="center">Score : {{ exam.score }}</h3>
+        
+        <ol class="list-group">
+            {% for item in questions_with_answers %}
+            <li class="list-group-item list-group-item-action my-1">
+                <h6><i>{{ item.question.question }}</i></h6>
+                <hr>
+                <p><strong>Question Type:</strong> {{ item.question.question_type }}</p>
+                
+                {% if item.answer %}
+                    {% if item.answer.text_answer %}
+                        <p><strong>Your Text Answer:</strong></p>
+                        <div class="alert alert-info">{{ item.answer.text_answer }}</div>
+                    {% endif %}
+                    {% if item.answer.image_answer %}
+                        <p><strong>Your Image Answer:</strong></p>
+                        <img src="{{ item.answer.image_answer.url }}" alt="Image Answer" style="max-width:300px; max-height:300px; border: 1px solid #ddd; border-radius: 4px;">
+                    {% endif %}
+                    {% if item.answer.ocr_text %}
+                        <p><strong>OCR Extracted Text:</strong></p>
+                        <div class="alert alert-warning">{{ item.answer.ocr_text }}</div>
+                    {% endif %}
+                    
+                    <!-- Enhanced Feedback Display -->
+                    {% if item.answer.marks %}
+                        <div class="mt-3">
+                            <p><strong>Automated Score:</strong> 
+                                {% if item.answer.marks == 5 %}
+                                    <span class="badge badge-success">{{ item.answer.marks }}/5 marks</span>
+                                {% elif item.answer.marks == 4 %}
+                                    <span class="badge badge-primary">{{ item.answer.marks }}/5 marks</span>
+                                {% elif item.answer.marks == 3 %}
+                                    <span class="badge badge-info">{{ item.answer.marks }}/5 marks</span>
+                                {% elif item.answer.marks == 2 %}
+                                    <span class="badge badge-warning">{{ item.answer.marks }}/5 marks</span>
+                                {% elif item.answer.marks == 1 %}
+                                    <span class="badge badge-secondary">{{ item.answer.marks }}/5 marks</span>
+                                {% else %}
+                                    <span class="badge badge-danger">{{ item.answer.marks }}/5 marks</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if item.answer.feedback %}
+                        <div class="mt-2">
+                            <p><strong>Automated Feedback:</strong></p>
+                            <div class="alert 
+                                {% if item.answer.marks >= 4 %}alert-success
+                                {% elif item.answer.marks >= 3 %}alert-info
+                                {% elif item.answer.marks >= 2 %}alert-warning
+                                {% else %}alert-danger{% endif %}">
+                                <i class="fas 
+                                    {% if item.answer.marks >= 4 %}fa-star
+                                    {% elif item.answer.marks >= 3 %}fa-thumbs-up
+                                    {% elif item.answer.marks >= 2 %}fa-exclamation-triangle
+                                    {% else %}fa-exclamation-circle{% endif %}"></i>
+                                {{ item.answer.feedback }}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p><strong>Status:</strong> <span class="badge badge-secondary">No answer submitted</span></p>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+{% endblock body %}

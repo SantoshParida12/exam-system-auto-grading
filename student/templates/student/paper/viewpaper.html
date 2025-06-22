@@ -1,0 +1,230 @@
+{% extends 'student/base/base.html' %}
+
+{% block title %}View Paper{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h3 class="mb-0">{{ qpaper.qPaperTitle }}</h3>
+                        <div class="mt-2">
+                            <span class="badge badge-light">
+                                <i class="fa fa-clock-o"></i> Time left: <span id="dmin">{{ min }}</span> mins <span id="dsec">{{ sec }}</span> seconds
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle"></i>
+                            <strong>Important:</strong> Please answer all questions before submitting. If you submit without answering, the exam will remain incomplete.
+                        </div>
+                        
+                        <input type="hidden" id="mins" value="{{ min }}">
+                        <input type="hidden" id="secs" value="{{ sec }}">
+                        <input type="hidden" id="total-questions" value="{{ question_list|length }}">
+                        
+                        <form method="POST" id="examform" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <ol>
+                                {% for ques in question_list %}
+                                <div class="card mb-3 border-left-primary">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Question {{ forloop.counter }}</h5>
+                                        <p class="card-text"><strong>{{ ques.question }}</strong></p>
+                                        <hr/>
+                                        <div class="form-group">
+                                            <label for="answer_{{ forloop.counter }}" class="font-weight-bold">
+                                                <i class="fa fa-pencil text-primary"></i> Your Answer (Text):
+                                            </label>
+                                            <textarea 
+                                                class="form-control answer-field" 
+                                                id="answer_{{ forloop.counter }}" 
+                                                name="{{ ques.question }}" 
+                                                rows="4" 
+                                                placeholder="Write your detailed answer here..."
+                                                onchange="checkAnswers()"></textarea>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="image_{{ ques.pk }}" class="font-weight-bold">
+                                                <i class="fa fa-camera text-primary"></i> Or Upload Image Answer:
+                                            </label>
+                                            <input 
+                                                type="file" 
+                                                class="form-control-file image-upload" 
+                                                id="image_{{ ques.pk }}" 
+                                                name="image_{{ ques.pk }}" 
+                                                accept="image/*"
+                                                data-question="{{ forloop.counter }}"
+                                                onchange="previewImage(this)">
+                                            <small class="form-text text-muted">
+                                                Upload a clear image of your handwritten answer. Supported formats: JPEG, PNG, BMP (Max 10MB)
+                                            </small>
+                                        </div>
+                                        
+                                        <div id="image_preview_{{ forloop.counter }}" class="mt-2" style="display: none;">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h6 class="mb-0">Image Preview</h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <img id="preview_{{ ques.pk }}" class="img-fluid mb-2" style="max-width: 300px; border: 1px solid #ddd;">
+                                                    <div id="ocr_preview_{{ ques.pk }}" class="alert alert-info" style="display: none;">
+                                                        <strong>OCR Preview:</strong>
+                                                        <div id="ocr_text_{{ ques.pk }}" class="mt-2"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <small class="form-text text-muted">
+                                            <span class="answer-status" id="status_{{ forloop.counter }}">
+                                                <i class="fa fa-circle-o text-muted"></i> Not answered
+                                            </span>
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </ol>
+                            
+                            <input type="hidden" value="{{ qpaper.qPaperTitle}}" name="papertitle">
+                            <input type="hidden" value="{{ exam }}" name="paper">
+                            
+                            <div class="text-center mt-4">
+                                <div class="alert alert-warning" id="submit-warning" style="display: none;">
+                                    <i class="fa fa-exclamation-triangle"></i>
+                                    <strong>Warning:</strong> You haven't answered all questions. Are you sure you want to submit?
+                                </div>
+                                <button type="submit" class="btn btn-success btn-lg" name="PaperSubmit" onclick="return confirmSubmit()">
+                                    <i class="fa fa-check"></i> Submit Exam
+                                </button>
+                                <a href="{% url 'student:exams' %}" class="btn btn-secondary btn-lg ml-2" onclick="return confirm('Are you sure you want to leave? Your progress will be lost.')">
+                                    <i class="fa fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="text/javascript">
+        var seconds = parseInt(document.getElementById("secs").value);
+        var minutes = parseInt(document.getElementById("mins").value);
+        var answeredQuestions = 0;
+        var totalQuestions = parseInt(document.getElementById("total-questions").value);
+
+        function checkAnswers() {
+            answeredQuestions = 0;
+            var answerFields = document.querySelectorAll('.answer-field');
+            var imageFields = document.querySelectorAll('.image-upload');
+            
+            answerFields.forEach(function(field, index) {
+                var answer = field.value.trim();
+                var imageField = imageFields[index];
+                var hasImage = imageField && imageField.files.length > 0;
+                var statusElement = document.getElementById('status_' + (index + 1));
+                
+                if (answer.length > 0 || hasImage) {
+                    answeredQuestions++;
+                    statusElement.innerHTML = '<i class="fa fa-check-circle text-success"></i> Answered';
+                    statusElement.className = 'answer-status text-success';
+                } else {
+                    statusElement.innerHTML = '<i class="fa fa-circle-o text-muted"></i> Not answered';
+                    statusElement.className = 'answer-status text-muted';
+                }
+            });
+            
+            // Show/hide submit warning
+            var warning = document.getElementById('submit-warning');
+            if (answeredQuestions < totalQuestions) {
+                warning.style.display = 'block';
+                warning.innerHTML = '<i class="fa fa-exclamation-triangle"></i> <strong>Warning:</strong> You have answered ' + answeredQuestions + ' out of ' + totalQuestions + ' questions. Are you sure you want to submit?';
+            } else {
+                warning.style.display = 'none';
+            }
+        }
+
+        function previewImage(input) {
+            var questionNum = input.getAttribute('data-question');
+            var previewDiv = document.getElementById('image_preview_' + questionNum);
+            var previewImg = document.getElementById('preview_' + input.id.split('_')[1]);
+            var ocrPreview = document.getElementById('ocr_preview_' + input.id.split('_')[1]);
+            var ocrText = document.getElementById('ocr_text_' + input.id.split('_')[1]);
+            
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewDiv.style.display = 'block';
+                    
+                    // Show loading message for OCR
+                    ocrPreview.style.display = 'block';
+                    ocrText.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing image with OCR...';
+                    
+                    // Simulate OCR processing (in real implementation, this would be done server-side)
+                    setTimeout(function() {
+                        ocrText.innerHTML = '<em>OCR processing will be performed when you submit the exam. Please ensure your handwriting is clear and the image is well-lit.</em>';
+                    }, 1000);
+                };
+                
+                reader.readAsDataURL(input.files[0]);
+                checkAnswers(); // Update answer status
+            } else {
+                previewDiv.style.display = 'none';
+                ocrPreview.style.display = 'none';
+                checkAnswers(); // Update answer status
+            }
+        }
+
+        function confirmSubmit() {
+            if (answeredQuestions < totalQuestions) {
+                return confirm('You have only answered ' + answeredQuestions + ' out of ' + totalQuestions + ' questions. Are you sure you want to submit the exam?');
+            }
+            return true;
+        }
+
+        function display() {
+            if (minutes == 0 && seconds == 0) {
+                alert('Time is up! Submitting exam automatically.');
+                document.getElementById("examform").submit();
+                return;
+            }
+            if (seconds == 0) {
+                minutes = minutes - 1;
+                seconds = 60;
+            }
+            seconds -= 1;
+            document.getElementById("dsec").innerHTML = seconds;
+            document.getElementById("dmin").innerHTML = minutes;
+            setTimeout(display, 1000);
+        }
+        
+        // Initialize answer checking
+        checkAnswers();
+        display();
+    </script>
+    
+    <style>
+        .border-left-primary {
+            border-left: 4px solid #007bff !important;
+        }
+        .answer-status {
+            font-size: 0.9em;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .card {
+            border-radius: 8px;
+        }
+        .btn {
+            border-radius: 6px;
+        }
+    </style>
+{% endblock body %}

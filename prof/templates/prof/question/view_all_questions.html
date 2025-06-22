@@ -1,0 +1,172 @@
+{% extends 'prof/base/base.html' %}
+{% load static %}
+
+{% block title %}Questions Management{% endblock title %}
+{% block navbar_title %}{{ prof.username }}{% endblock navbar_title %}
+{% block navitem_title %}Questions{% endblock navitem_title %}
+
+{% block searchInput %}
+    <form class="form-inline my-2 my-lg-0">
+        <div class="input-group">
+            <input id='searchQuestion' class="form-control" type="search" placeholder="Search questions..." aria-label="Search">
+            <div class="input-group-append">
+                <button class="btn btn-outline-light" type="button">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+{% endblock searchInput %}
+
+{% block buttons %}
+    <a class="btn btn-success mx-2" href="{% url 'prof:add_question' %}">
+        <i class="fa fa-plus"></i> Add Question
+    </a>
+    <a class="btn btn-outline-light" href="{% url 'prof:index' %}">
+        <i class="fa fa-home"></i> Dashboard
+    </a>
+{% endblock buttons %}
+
+{% block body %}
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="fa fa-question-circle text-primary"></i>
+                        Questions Management
+                    </h2>
+                    <div class="badge badge-primary badge-pill">
+                        {{ question_db.count }} Questions
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if question_db %}
+            <div class="row" id="questionsContainer">
+                {% for ques in question_db %}
+                <div class="col-lg-6 col-md-12 mb-4 question-item">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-question text-primary"></i>
+                                    Question #{{ ques.qno }}
+                                </h5>
+                                <span class="badge badge-info">{{ ques.question_type }}</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text lead">{{ ques.question }}</p>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fa fa-calendar"></i>
+                                    Created: {{ ques.qno|date:"M d, Y" }}
+                                </small>
+                                <div class="btn-group" role="group">
+                                    <a class="btn btn-outline-primary btn-sm" href="{% url 'prof:edit_question' ques.qno %}">
+                                        <i class="fa fa-edit"></i> Edit
+                                    </a>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="deleteQuestion('{{ ques.qno }}')">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center py-5">
+                            <i class="fa fa-question-circle fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No Questions Available</h4>
+                            <p class="text-muted">You haven't created any questions yet. Start by adding your first question.</p>
+                            <a href="{% url 'prof:add_question' %}" class="btn btn-primary btn-lg">
+                                <i class="fa fa-plus"></i> Create Your First Question
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fa fa-exclamation-triangle"></i> Confirm Deletion
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this question? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <form method="POST" id="deleteForm" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="qno" id="questionToDelete">
+                        <button type="submit" class="btn btn-danger">Delete Question</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border-radius: 12px;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+        }
+        .card-header {
+            border-radius: 12px 12px 0 0 !important;
+        }
+        .btn-group .btn {
+            border-radius: 6px;
+        }
+        .question-item {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .question-item.hidden {
+            display: none;
+        }
+    </style>
+
+    <script src="{% static 'prof/js/questions.js' %}"></script>
+    <script>
+        function deleteQuestion(qno) {
+            document.getElementById('questionToDelete').value = qno;
+            $('#deleteModal').modal('show');
+        }
+
+        // Enhanced search functionality
+        document.getElementById('searchQuestion').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const questions = document.querySelectorAll('.question-item');
+            
+            questions.forEach(question => {
+                const questionText = question.querySelector('.card-text').textContent.toLowerCase();
+                if (questionText.includes(searchTerm)) {
+                    question.classList.remove('hidden');
+                } else {
+                    question.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+{% endblock body %}

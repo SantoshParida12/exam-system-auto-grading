@@ -1,0 +1,178 @@
+{% extends 'prof/base/base.html' %}
+
+{% block title %}Create Question{% endblock title %}
+{% block navbar_title %}{{ prof.username }}{% endblock navbar_title %}
+{% block navitem_title %}Create New Question{% endblock navitem_title %}
+
+{% block buttons %}
+    <a href="{% url 'prof:add_multiple_questions' %}" class="btn btn-outline-light mx-2">
+        <i class="fa fa-list"></i> Add Multiple Questions
+    </a>
+    <a href="{% url 'prof:view_all_ques' %}" class="btn btn-outline-light mx-2">
+        <i class="fa fa-list"></i> View All Questions
+    </a>
+    <a href="{% url 'prof:index' %}" class="btn btn-outline-light">
+        <i class="fa fa-home"></i> Dashboard
+    </a>
+{% endblock buttons %}
+
+{% block body %}
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fa fa-plus-circle"></i> Create New Subjective Question
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle"></i>
+                            <strong>Note:</strong> You are creating a subjective question. Students will provide written answers that you can review and grade manually.
+                        </div>
+                        
+                        <form method="POST" class="mt-4">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="{{ form.question.id_for_label }}" class="font-weight-bold">
+                                    <i class="fa fa-question-circle text-primary"></i> Question Text
+                                </label>
+                                <textarea 
+                                    name="{{ form.question.name }}" 
+                                    id="{{ form.question.id_for_label }}" 
+                                    class="form-control" 
+                                    rows="6" 
+                                    placeholder="Enter your detailed question here. You can write longer, more comprehensive questions for subjective answers..."
+                                    required>{{ form.question.value|default:'' }}</textarea>
+                                {% if form.question.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.question.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    <i class="fa fa-lightbulb-o"></i> 
+                                    <strong>Tip:</strong> Write clear, specific questions that encourage detailed responses. You can now write longer questions (up to 1000 characters).
+                                </small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.question_type.id_for_label }}" class="font-weight-bold">
+                                    <i class="fa fa-tag text-primary"></i> Question Type
+                                </label>
+                                <select name="{{ form.question_type.name }}" id="{{ form.question_type.id_for_label }}" class="form-control">
+                                    {% for value, label in form.question_type.field.choices %}
+                                        <option value="{{ value }}" {% if form.question_type.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.question_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.question_type.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    This question will be marked as subjective for manual grading.
+                                </small>
+                            </div>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <button type="submit" class="btn btn-success btn-lg btn-block">
+                                        <i class="fa fa-save"></i> Create Question
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{% url 'prof:view_all_ques' %}" class="btn btn-secondary btn-lg btn-block">
+                                        <i class="fa fa-times"></i> Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Quick Tips Section -->
+                <div class="card mt-4 shadow-sm border-0">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fa fa-lightbulb-o text-warning"></i> Tips for Writing Good Questions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="fa fa-check text-success"></i> Be specific and clear
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fa fa-check text-success"></i> Use action verbs (explain, describe, analyze)
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fa fa-check text-success"></i> Provide context when needed
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="fa fa-check text-success"></i> Avoid ambiguous language
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fa fa-check text-success"></i> Consider the expected answer length
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fa fa-check text-success"></i> Test your question for clarity
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multiple Questions Section -->
+                <div class="card mt-4 shadow-sm border-0">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fa fa-bolt text-warning"></i> Need to Add Many Questions?
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">If you need to create multiple questions at once, use our bulk question creation feature!</p>
+                        <a href="{% url 'prof:add_multiple_questions' %}" class="btn btn-success">
+                            <i class="fa fa-plus"></i> Add Multiple Questions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 12px 16px;
+            font-size: 16px;
+            transition: border-color 0.2s ease-in-out;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        .card {
+            border-radius: 12px;
+        }
+        .card-header {
+            border-radius: 12px 12px 0 0 !important;
+        }
+    </style>
+{% endblock body %}

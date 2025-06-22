@@ -1,0 +1,116 @@
+{% extends 'prof/base/base.html' %}
+{% load static %}
+
+{% block title %}Student Groups{% endblock title %}
+{% block navbar_title %}{{ prof.username }}{% endblock navbar_title %}
+{% block navitem_title %}Groups{% endblock navitem_title %}
+
+{% block buttons %}
+    <a class="btn btn-light" href="{% url 'prof:index' %}">Home</a> 
+{% endblock buttons %}
+
+{% block body %}
+    <div class="container-fluid">
+        <h3 class="alert alert-secondary my-1" align="center">Create a new group</h3>
+        <div align='center' id="create_group">
+            <div class="container d-flex h-100 row justify-content-center col-20">
+                <form style="width: 80%; font-weight: bolder;"  method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="{{ groupForm.category_name.id_for_label }}" class="font-weight-bold">
+                            <i class="fa fa-users text-primary"></i> Group Name
+                        </label>
+                        {{ groupForm.category_name }}
+                        {% if groupForm.category_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ groupForm.category_name.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ groupForm.students.id_for_label }}" class="font-weight-bold">
+                            <i class="fa fa-user-plus text-primary"></i> Select Students
+                        </label>
+                        {{ groupForm.students }}
+                        {% if groupForm.students.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ groupForm.students.errors }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            Hold Ctrl (or Cmd on Mac) to select multiple students
+                        </small>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fa fa-save"></i> Create Group
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div id='groups'>
+            <h1 class="alert alert-info my-3" align="center">Groups</h1>
+            <form class="form-inline my-2 my-lg-0">
+                <input id="searchGroup" class="form-control mr-sm-2" type="search" placeholder="Search Group"
+                    aria-label="Search">
+                    <a class="btn btn-dark" href="{% url 'prof:view_exams' %}" target="_blank">View Exams</a>
+            </form>
+            <div class="row">
+                {% for group in special_students_db %}
+                <div class="card my-3 mx-5 col-sm-3">
+                    <h3 class="card-header">{{ group.category_name }}</h3>
+                    <div class="card-body">
+                        <p class="card-text">
+                            <h4 class="card-subtitle mb-2 text-muted">Students</h4>
+                            {% for stud in group.students.all %}
+                            {{stud.username}}
+                            {% endfor %}
+                            <br><br>
+                            <h4 class="card-subtitle mb-2 text-muted">Exams</h4>
+                            {% for exam in group.exams.all %}
+                                {{ exam.name }}
+                                {% empty %}
+                                    No exams associated
+                            {% endfor %}
+                        </p>
+                        <a href="{% url 'prof:edit_group' group.id %}"
+                            class="card-link btn btn-info">Edit</a>
+                    </div>
+                </div>
+                {% empty %}
+                <h3>No groups</h3>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 12px 16px;
+            font-size: 16px;
+            transition: border-color 0.2s ease-in-out;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        .card {
+            border-radius: 12px;
+            transition: transform 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+
+    <script src="{% static 'prof/js/groups.js' %}"></script>
+{% endblock body %}

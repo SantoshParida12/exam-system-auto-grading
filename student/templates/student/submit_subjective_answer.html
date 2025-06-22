@@ -1,0 +1,79 @@
+{% extends 'student/base/base.html' %}
+{% block content %}
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow">
+          <div class="card-header bg-primary text-white">
+            <h3 class="mb-0"><i class="fa fa-edit"></i> Submit Your Answer</h3>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info">
+              <h5><i class="fa fa-info-circle"></i> Question:</h5>
+              <p class="mb-0">{{ question.question }}</p>
+            </div>
+            
+            {% if messages %}
+              <div class="messages">
+                {% for message in messages %}
+                  <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+            
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              
+              <div class="alert alert-warning">
+                <i class="fa fa-lightbulb-o"></i>
+                <strong>Instructions:</strong> You can submit your answer as text, an image, or both. 
+                If you upload an image, our OCR system will automatically extract text from it to help with grading.
+                Only one submission is allowed per question.
+              </div>
+              
+              <div class="form-group">
+                <label for="{{ form.text_answer.id_for_label }}" class="font-weight-bold">
+                  <i class="fa fa-pencil text-primary"></i> Text Answer:
+                </label>
+                {{ form.text_answer }}
+                {% if form.text_answer.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.text_answer.errors }}
+                  </div>
+                {% endif %}
+              </div>
+              
+              <div class="form-group">
+                <label for="{{ form.image_answer.id_for_label }}" class="font-weight-bold">
+                  <i class="fa fa-camera text-primary"></i> Image Answer:
+                </label>
+                {{ form.image_answer }}
+                {% if form.image_answer.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.image_answer.errors }}
+                  </div>
+                {% endif %}
+                <small class="form-text text-muted">
+                  <i class="fa fa-info-circle"></i>
+                  Upload a clear image of your handwritten answer. Supported formats: JPEG, PNG, BMP (Max 10MB).
+                  For best OCR results, ensure good lighting and clear handwriting.
+                </small>
+              </div>
+              
+              <div class="text-center mt-4">
+                <button type="submit" class="btn btn-success btn-lg">
+                  <i class="fa fa-check"></i> Submit Answer
+                </button>
+                <a href="{% url 'student:exams' %}" class="btn btn-secondary btn-lg ml-2">
+                  <i class="fa fa-times"></i> Cancel
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %} 

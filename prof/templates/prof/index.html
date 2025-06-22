@@ -1,0 +1,134 @@
+{% extends 'prof/base/base.html' %}
+
+{% block title %}Professor Dashboard{% endblock title %}
+{% block navbar_title %}{{ prof.username }}{% endblock navbar_title %}
+{% block navitem_title %}Dashboard{% endblock navitem_title %}
+
+{% block buttons %}
+    <a class="btn btn-outline-light" href="{% url 'main:logoutUser' %}">
+        <i class="fa fa-sign-out"></i> Logout
+    </a>
+{% endblock buttons %}
+
+{% block body %}
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-center mb-5">
+                    <i class="fa fa-graduation-cap text-primary"></i>
+                    Professor
+                </h1>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fa fa-users fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Students</h5>
+                        <p class="card-text text-muted">Manage student accounts and view student information</p>
+                        <a href="{% url 'prof:view_students' %}" class="btn btn-primary btn-block">
+                            <i class="fa fa-arrow-right"></i> View Students
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fa fa-file-text fa-3x text-success"></i>
+                        </div>
+                        <h5 class="card-title">Exams</h5>
+                        <p class="card-text text-muted">Create and manage examinations</p>
+                        <a href="{% url 'prof:view_exams' %}" class="btn btn-success btn-block">
+                            <i class="fa fa-arrow-right"></i> Manage Exams
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fa fa-question-circle fa-3x text-info"></i>
+                        </div>
+                        <h5 class="card-title">Questions</h5>
+                        <p class="card-text text-muted">Create and manage subjective questions</p>
+                        <a href="{% url 'prof:add_question' %}" class="btn btn-info btn-block">
+                            <i class="fa fa-plus"></i> Add Question
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fa fa-file fa-3x text-warning"></i>
+                        </div>
+                        <h5 class="card-title">Question Papers</h5>
+                        <p class="card-text text-muted">Create and organize question papers</p>
+                        <a href="{% url 'prof:make_paper' %}" class="btn btn-warning btn-block">
+                            <i class="fa fa-arrow-right"></i> Manage Papers
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fa fa-bolt fa-3x text-danger"></i>
+                        </div>
+                        <h5 class="card-title">Bulk Questions</h5>
+                        <p class="card-text text-muted">Add multiple questions at once for efficiency</p>
+                        <a href="{% url 'prof:add_multiple_questions' %}" class="btn btn-danger btn-block">
+                            <i class="fa fa-plus"></i> Add Multiple
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fa fa-group fa-3x text-secondary"></i>
+                        </div>
+                        <h5 class="card-title">Student Groups</h5>
+                        <p class="card-text text-muted">Organize students into groups for exams</p>
+                        <a href="{% url 'prof:view_groups' %}" class="btn btn-secondary btn-block">
+                            <i class="fa fa-arrow-right"></i> Manage Groups
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .card {
+            transition: transform 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-body {
+            padding: 2rem 1.5rem;
+        }
+        .btn-block {
+            border-radius: 25px;
+            font-weight: 500;
+        }
+    </style>
+{% endblock body %}
