@@ -62,10 +62,10 @@ def test_login_views():
     
     # Test login page accessibility
     response = client.get('/login/')
-    if response.status_code == 200:
+    if response.status_code == 200:# type: ignore
         print("✅ Login page accessible")
     else:
-        print(f"❌ Login page failed: {response.status_code}")
+        print(f"❌ Login page failed: {response.status_code}") # type: ignore
         return False
     
     # Test login functionality
@@ -76,10 +76,10 @@ def test_login_views():
         'username': 'web_test_professor',
         'password': 'testpass123'
     })
-    if response.status_code == 302:  # Redirect after successful login
+    if response.status_code == 302:  # Redirect after successful login # type: ignore
         print("✅ Professor login successful")
     else:
-        print(f"❌ Professor login failed: {response.status_code}")
+        print(f"❌ Professor login failed: {response.status_code}") # type: ignore
         return False
     
     return True
@@ -96,18 +96,18 @@ def test_professor_views():
     
     # Test professor dashboard
     response = client.get('/prof/')
-    if response.status_code == 200:
+    if response.status_code == 200: # type: ignore
         print("✅ Professor dashboard accessible")
     else:
-        print(f"❌ Professor dashboard failed: {response.status_code}")
+        print(f"❌ Professor dashboard failed: {response.status_code}") # type: ignore
         return False
     
     # Test question creation view
     response = client.get('/prof/question/')
-    if response.status_code == 200:
+    if response.status_code == 200: # type: ignore
         print("✅ Question creation page accessible")
     else:
-        print(f"❌ Question creation page failed: {response.status_code}")
+        print(f"❌ Question creation page failed: {response.status_code}") # type: ignore
         return False
     
     return True
@@ -124,18 +124,18 @@ def test_student_views():
     
     # Test student dashboard
     response = client.get('/student/')
-    if response.status_code == 200:
+    if response.status_code == 200: # type: ignore
         print("✅ Student dashboard accessible")
     else:
-        print(f"❌ Student dashboard failed: {response.status_code}")
+        print(f"❌ Student dashboard failed: {response.status_code}") # type: ignore
         return False
     
     # Test exams view
     response = client.get('/student/exams/')
-    if response.status_code == 200:
+    if response.status_code == 200: # type: ignore
         print("✅ Student exams page accessible")
     else:
-        print(f"❌ Student exams page failed: {response.status_code}")
+        print(f"❌ Student exams page failed: {response.status_code}") # type: ignore
         return False
     
     return True
@@ -152,18 +152,18 @@ def test_admin_interface():
     
     # Test admin interface
     response = client.get('/admin/')
-    if response.status_code == 200:
+    if response.status_code == 200: # type: ignore
         print("✅ Admin interface accessible")
     else:
-        print(f"❌ Admin interface failed: {response.status_code}")
+        print(f"❌ Admin interface failed: {response.status_code}") # type: ignore
         return False
     
     # Test reference answers in admin
     response = client.get('/admin/main/referenceanswer/')
-    if response.status_code == 200:
+    if response.status_code == 200: # type: ignore
         print("✅ Reference answers admin page accessible")
     else:
-        print(f"❌ Reference answers admin page failed: {response.status_code}")
+        print(f"❌ Reference answers admin page failed: {response.status_code}") # type: ignore
         return False
     
     return True
@@ -186,10 +186,10 @@ def test_url_patterns():
     
     for url in urls_to_test:
         response = client.get(url)
-        if response.status_code in [200, 302]:  # 302 is redirect (like login required)
-            print(f"✅ {url} - accessible (status: {response.status_code})")
+        if response.status_code in [200, 302]:  # 302 is redirect (like login required) # type: ignore  
+            print(f"✅ {url} - accessible (status: {response.status_code})") # type: ignore
         else:
-            print(f"❌ {url} - failed (status: {response.status_code})")
+            print(f"❌ {url} - failed (status: {response.status_code})") # type: ignore 
     
     return True
 

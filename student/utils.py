@@ -13,6 +13,8 @@ import json
 import re
 from main.models.reference_answer import ReferenceAnswer
 from student.models import SubjectiveAnswer
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+from nltk.stem import PorterStemmer
 
 logger = logging.getLogger(__name__)
 
@@ -307,16 +309,26 @@ def calculate_similarity_score(student_text, reference_text):
         logger.error(f"Error calculating similarity score: {e}")
         return 0.0
 
+def extract_keywords(text):
+    """
+    Extract keywords from a text for keyword matching.
+    Uses simple tokenization and removes stopwords.
+    """
+    ps = PorterStemmer()
+    tokens = re.findall(r'\b\w+\b', text.lower())
+    # Only remove short words, not stopwords
+    keywords = [ps.stem(t) for t in tokens if len(t) > 2]
+    print(f"[DEBUG] Extracted (stemmed, no stopwords) keywords from: '{text[:60]}...': {set(keywords)}")
+    return set(keywords)
+
 def grade_answer(student_answer, reference_answers):
     """
-    Grade student answer against reference answers using TF-IDF similarity
+    Grade student answer against reference answers using TF-IDF similarity and keyword matching
     Returns: (marks, feedback, best_match_reference) where marks is 0-5
     """
     try:
         if not student_answer:
             return 0, "No answer provided", None
-        
-        # Get student text (either direct text or OCR text)
         student_text = ""
         if hasattr(student_answer, 'text_answer') and student_answer.text_answer:
             student_text = student_answer.text_answer
@@ -324,35 +336,26 @@ def grade_answer(student_answer, reference_answers):
             student_text = student_answer.ocr_text
         else:
             return 0, "No text content found in answer", None
-        
         if not student_text.strip():
             return 0, "No text content found in answer", None
-        
         best_score = 0.0
         best_feedback = ""
         best_reference = None
-        
-        # Compare with each reference answer
+        best_keywords = set()
         for ref_answer in reference_answers:
             ref_text = ""
-            
-            # Get reference text (either direct text or OCR text)
             if ref_answer.text_answer:
                 ref_text = ref_answer.text_answer
             elif ref_answer.ocr_text:
                 ref_text = ref_answer.ocr_text
-            
             if not ref_text.strip():
                 continue
-            
-            # Calculate similarity score
             similarity_score = calculate_similarity_score(student_text, ref_text)
-            
+            ref_keywords = extract_keywords(ref_text)
             if similarity_score > best_score:
                 best_score = similarity_score
                 best_reference = ref_answer
-                
-                # Generate feedback based on score
+                best_keywords = ref_keywords
                 if similarity_score >= 0.9:
                     best_feedback = "Outstanding! Your answer matches the reference almost perfectly."
                 elif similarity_score >= 0.7:
@@ -363,37 +366,56 @@ def grade_answer(student_answer, reference_answers):
                     best_feedback = "Some relevant content, but more detail is needed."
                 else:
                     best_feedback = "Your answer needs significant improvement. Please review the topic."
-        
-        # Convert similarity score to marks (0-5)
-        # 0.0-0.2 = 0 marks (Very poor)
-        # 0.2-0.4 = 1 mark (Poor)
-        # 0.4-0.6 = 2 marks (Below average)
-        # 0.6-0.8 = 3 marks (Fair)
-        # 0.8-0.9 = 4 marks (Good)
-        # 0.9-1.0 = 5 marks (Excellent)
-        
-        if best_score >= 0.9:
-            marks = 5
-        elif best_score >= 0.8:
-            marks = 4
+        # TF-IDF based marks
+        if best_score >= 0.85:
+            tfidf_marks = 5
+        elif best_score >= 0.7:
+            tfidf_marks = 4
         elif best_score >= 0.6:
-            marks = 3
+            tfidf_marks = 3
         elif best_score >= 0.4:
-            marks = 2
+            tfidf_marks = 2
         elif best_score >= 0.2:
-            marks = 1
+            tfidf_marks = 1
         else:
-            marks = 0
+            tfidf_marks = 0
+        # Cap TF-IDF score if answer is too short
+        if len(student_text.split()) < 8:
+            tfidf_marks = min(tfidf_marks, 2)
         
-        # Ensure feedback is always provided
+        # Absolute matched keyword based marks
+        student_keywords = extract_keywords(student_text)
+        matched_keywords = set()
+        keyword_marks = 0
+        if best_keywords:
+            matched_keywords = best_keywords & student_keywords
+            print(f"[DEBUG] Reference keywords: {best_keywords}")
+            print(f"[DEBUG] Student keywords: {student_keywords}")
+            print(f"[DEBUG] Matched keywords: {matched_keywords}")
+            print(f"[DEBUG] Matched keyword count: {len(matched_keywords)}")
+            if len(matched_keywords) >= 10:
+                keyword_marks = 5
+            elif len(matched_keywords) >= 7:
+                keyword_marks = 4
+            elif len(matched_keywords) >= 5:
+                keyword_marks = 3
+            elif len(matched_keywords) >= 3:
+                keyword_marks = 2
+            elif len(matched_keywords) >= 1:
+                keyword_marks = 1
+            else:
+                keyword_marks = 0
+        if len(student_text.split()) < 10:
+            tfidf_marks = min(tfidf_marks, 2)
+            keyword_marks = min(keyword_marks, 2)
+        # Use the higher of the two
+        marks = max(tfidf_marks, keyword_marks)
         if not best_feedback:
             if best_score == 0.0:
                 best_feedback = "No reference answers available for comparison, or answer content does not match expected format."
             else:
                 best_feedback = "Answer has been processed and graded based on available reference material."
-        
         return marks, best_feedback, best_reference
-        
     except Exception as e:
         logger.error(f"Error grading answer: {e}")
         return 0, f"Error during grading: {str(e)}", None

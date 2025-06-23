@@ -185,13 +185,11 @@ def exams(request):
                     else:
                         print(f"No reference answers found for question {question.pk}")
             
-            # Calculate average score
+            # Calculate total marks
             if graded_questions > 0:
-                average_score = total_score / graded_questions
-                # Convert from 0-5 scale to 0-100 percentage
-                percentage_score = (average_score / 5) * 100
-                stuExam.score = int(percentage_score)
-                print(f"Average score: {average_score:.1f}/5 = {percentage_score:.1f}%")
+                total_marks = total_score  # sum of marks for all questions
+                stuExam.score = int(total_marks)
+                print(f"Total marks: {total_marks} (out of {graded_questions * 5})")
             else:
                 stuExam.score = 0
                 print("No questions were graded")
@@ -199,7 +197,7 @@ def exams(request):
             # Mark as completed
             stuExam.completed = 1
             stuExam.save()
-            print(f"Exam {paper} marked as completed with average score: {stuExam.score}%")
+            print(f"Exam {paper} marked as completed with total marks: {stuExam.score}")
         else:
             # Student didn't submit any answers - keep as incomplete
             stuExam.completed = 0
@@ -208,7 +206,7 @@ def exams(request):
             messages.warning(request, "No answers were submitted. The exam remains incomplete.")
 
         return render(request, 'student/result/result.html', {
-            'Title': title, 'Score': f'{stuExam.score}%' if submitted_answers else 'Incomplete', 'student': student
+            'Title': title, 'Score': f'{stuExam.score}' if submitted_answers else 'Incomplete', 'student': student
         })
 
     return render(request, 'student/exam/viewexam.html', {

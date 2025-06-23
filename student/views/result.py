@@ -102,9 +102,8 @@ def auto_grade_exam(exam, student):
     
     # Update exam score if we graded any new answers
     if updated_answers and graded_questions > 0:
-        average_score = total_score / graded_questions
-        exam.score = int(average_score)
+        exam.score = int(total_score)
         exam.save()
-        print(f"Updated exam score to {average_score:.1f}%")
+        print(f"Updated exam score to {total_score} (out of {graded_questions * 5})")
     
     return updated_answers

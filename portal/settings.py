@@ -118,12 +118,13 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'prof/static/prof/js'),
 )
 
-# Media files (Uploaded files)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 LOGOUT_REDIRECT_URL = 'main:logoutUser'
+
+APPEND_SLASH = True
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 django_heroku.settings(locals())

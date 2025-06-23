@@ -49,9 +49,9 @@ def test_image_grading():
         
         # Check for reference answers
         reference_answers = get_reference_answers_for_question(answer.question)
-        print(f"Reference answers found: {reference_answers.count()}")
+        print(f"Reference answers found: {reference_answers.count()}") # type: ignore
         
-        if reference_answers.count() > 0:
+        if reference_answers.count() > 0: # type: ignore
             # Grade the answer
             marks, feedback, best_ref = grade_answer(answer, reference_answers)
             print(f"📊 Grading result: {marks}/5 marks")
