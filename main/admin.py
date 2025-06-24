@@ -1,9 +1,16 @@
 from django.contrib import admin
 from .models import *
 from .models.reference_answer import ReferenceAnswer
+from .models.question import Question_DB
 
 # Register your models here.
-admin.site.register(Question_DB)
+
+class QuestionDBAdmin(admin.ModelAdmin):
+    def has_delete_permission(self, request, obj=None):
+        return False  # Disables delete for all users
+
+admin.site.register(Question_DB, QuestionDBAdmin)
+
 admin.site.register(Question_Paper)
 admin.site.register(Special_Students)
 admin.site.register(Exam_Model)

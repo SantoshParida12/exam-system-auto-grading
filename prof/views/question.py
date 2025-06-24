@@ -13,7 +13,9 @@ def add_question(request):
         if form.is_valid():
             form = form.save(commit=False)
             form.professor = prof
+            print(f"[DEBUG] Creating question: '{form.question[:60]}' by professor: {prof.username if prof else 'None'}")
             form.save()
+            print(f"[DEBUG] Saved question with qno: {form.qno}, professor: {form.professor.username if form.professor else 'None'}")
             messages.success(request, 'Question created successfully!')
             return redirect('prof:view_all_ques')
 
@@ -46,11 +48,13 @@ def add_multiple_questions(request):
                 created_count = 0
                 for question_text in questions:
                     if len(question_text) > 10:  # Minimum question length
-                        Question_DB.objects.create(  # type: ignore
+                        print(f"[DEBUG] Creating question: '{question_text[:60]}' by professor: {prof.username if prof else 'None'}")
+                        q = Question_DB.objects.create(  # type: ignore
                             professor=prof,
                             question=question_text,
                             question_type='SUBJECTIVE'
                         )
+                        print(f"[DEBUG] Saved question with qno: {q.qno}, professor: {q.professor.username if q.professor else 'None'}")
                         created_count += 1
                 
                 if created_count > 0:

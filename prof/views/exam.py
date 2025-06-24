@@ -50,10 +50,28 @@ def edit_exam(request, exam_id):
     new_Form.fields["question_paper"].queryset = Question_Paper.objects.filter(professor=prof)  # type: ignore
 
     if request.method == 'POST':
+        print("[DEBUG][edit_exam] POST data:", request.POST)
         form = ExamForm(request.POST, instance=exam)
         if form.is_valid():
+            print("[DEBUG][edit_exam] Changed data:", form.changed_data)
             form.save()
+            # Ensure all student exam records use the updated question paper and questions
+            from student.models import StuExam_DB, Stu_Question
+            for stu_exam in StuExam_DB.objects.filter(examname=exam.name): # type: ignore
+                stu_exam.qpaper = exam.question_paper
+                stu_exam.questions.clear()
+                for ques in exam.question_paper.questions.all():
+                    stu_question = Stu_Question.objects.create( # type: ignore
+                        question=ques.question,
+                        question_type=ques.question_type,
+                        student=stu_exam.student,
+                        original_question=ques
+                    )
+                    stu_exam.questions.add(stu_question)
+                stu_exam.save()
             return redirect('prof:view_exams')
+        else:
+            print("[DEBUG][edit_exam] Form errors:", form.errors)
 
     return render(request, 'prof/exam/edit_exam.html', {
         'form': new_Form, 'exam': exam, 'prof': prof

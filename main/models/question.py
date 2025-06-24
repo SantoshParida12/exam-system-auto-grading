@@ -14,6 +14,14 @@ class Question_DB(models.Model):
         question_text = str(self.question)
         return f'Question No.{self.qno}: {question_text[:50]}...' if len(question_text) > 50 else f'Question No.{self.qno}: {question_text}'
 
+    def delete(self, *args, **kwargs):
+        raise Exception("Deletion of questions is not allowed.")
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        prof_username = getattr(self.professor, 'username', 'None')
+        print(f"[DEBUG][MODEL] Question saved: qno={self.qno}, professor={prof_username}")
+
 
 class QForm(ModelForm):
     class Meta:
