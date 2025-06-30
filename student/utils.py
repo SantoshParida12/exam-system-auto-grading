@@ -15,6 +15,8 @@ from main.models.reference_answer import ReferenceAnswer
 from student.models import SubjectiveAnswer
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 from nltk.stem import PorterStemmer
+import math
+from collections import Counter
 
 logger = logging.getLogger(__name__)
 
@@ -273,38 +275,52 @@ def generate_tfidf_vector(text):
         logger.error(f"Error generating TF-IDF vector: {e}")
         return None
 
+def preprocess_text(text, ngram_range=(1,2)):
+    # Lowercase, remove punctuation, split into words, remove stopwords, apply stemming
+    ps = PorterStemmer()
+    tokens = re.findall(r'\b\w+\b', text.lower())
+    tokens = [ps.stem(t) for t in tokens if t not in ENGLISH_STOP_WORDS]
+    ngrams = []
+    min_n, max_n = ngram_range
+    for n in range(min_n, max_n+1):
+        ngrams += [' '.join(tokens[i:i+n]) for i in range(len(tokens)-n+1)]
+    return ngrams
+
+def manual_tfidf_vectorizer(texts, ngram_range=(1,2)):
+    N = len(texts)
+    all_tokens = [set(preprocess_text(text, ngram_range)) for text in texts]
+    vocab = set.union(*all_tokens) if all_tokens else set()
+    vocab = list(vocab)
+    idf = {}
+    for word in vocab:
+        df = sum(1 for tokens in all_tokens if word in tokens)
+        idf[word] = math.log((N + 1) / (df + 1)) + 1
+    tfidf_vectors = []
+    for text in texts:
+        tokens = preprocess_text(text, ngram_range)
+        tf = Counter(tokens)
+        tfidf = {word: (tf[word] / len(tokens) if len(tokens) > 0 else 0) * idf[word] for word in vocab}
+        tfidf_vectors.append(tfidf)
+    return tfidf_vectors, vocab
+
+def manual_cosine_similarity(vec1, vec2, vocab):
+    dot = sum(vec1[w] * vec2[w] for w in vocab)
+    norm1 = math.sqrt(sum(vec1[w] ** 2 for w in vocab))
+    norm2 = math.sqrt(sum(vec2[w] ** 2 for w in vocab))
+    if norm1 == 0 or norm2 == 0:
+        return 0.0
+    return dot / (norm1 * norm2)
+
 def calculate_similarity_score(student_text, reference_text):
     """
-    Calculate similarity score between student answer and reference answer using TF-IDF
+    Calculate similarity score between student answer and reference answer using manual TF-IDF with n-grams
     """
     try:
         if not student_text or not reference_text:
             return 0.0
-        
-        # Preprocess both texts
-        student_processed = preprocess_text_for_tfidf(student_text)
-        reference_processed = preprocess_text_for_tfidf(reference_text)
-        
-        if not student_processed or not reference_processed:
-            return 0.0
-        
-        # Create TF-IDF vectorizer
-        vectorizer = TfidfVectorizer(
-            max_features=1000,
-            stop_words='english',
-            ngram_range=(1, 2),
-            min_df=1,
-            max_df=1.0  # Changed from 0.95 to 1.0 for single document
-        )
-        
-        # Fit and transform both texts
-        tfidf_matrix = vectorizer.fit_transform([student_processed, reference_processed])
-        
-        # Calculate cosine similarity
-        similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
-        
+        tfidf_vectors, vocab = manual_tfidf_vectorizer([student_text, reference_text], ngram_range=(1,2))
+        similarity = manual_cosine_similarity(tfidf_vectors[0], tfidf_vectors[1], vocab)
         return float(similarity)
-        
     except Exception as e:
         logger.error(f"Error calculating similarity score: {e}")
         return 0.0
