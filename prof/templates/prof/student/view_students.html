@@ -1,26 +1,45 @@
 {% extends 'prof/base/base.html' %}
+{% load static %}
 
 {% block title %}Students{% endblock title %}
 {% block navbar_title %}{{ prof.username }}{% endblock navbar_title %}
 {% block navitem_title %}Students{% endblock navitem_title %}
 
 {% block buttons %}
-    <a href="{% url 'prof:index' %}" class="btn btn-light">Home</a>>
+    <a href="{% url 'prof:index' %}" class="btn btn-light">Home</a>
 {% endblock buttons %}
 
-
 {% block body %}
-<div class="container-fluid">
-        <br/>
-        <i><h4>Enrolled Students:</h4></i>
-        <div >
-                <ul>
-                    {% for s in students %}
-                    <li>{{ s.username }}</li>
-                    {% empty %}
-                    <h2>No students available</h2>
-                    {% endfor %}
-                </ul>
+<div class="container mt-4">
+    <h4 class="mb-4">Enrolled Students</h4>
+    {% if students %}
+    <div class="row">
+        {% for s in students %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card student-card h-100 text-center border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="mx-auto mb-3" style="width: 96px; height: 96px;">
+                        <img src="{% if s.profile_picture %}{{ s.profile_picture.url }}{% else %}{% static 'main/img/default_profile.png' %}{% endif %}"
+                             alt="Profile" class="rounded-circle border border-3 border-light shadow" width="96" height="96" style="object-fit:cover;">
+                    </div>
+                    <h5 class="card-title mb-1" style="font-weight:600;">{{ s.username }}</h5>
+                    {% if s.email %}
+                        <div class="mb-1" style="font-size:0.95em;">
+                            <i class="fas fa-envelope me-1 text-primary"></i>{{ s.email }}
+                        </div>
+                    {% endif %}
+                    {% if s.roll_number %}
+                        <div class="mb-1" style="font-size:0.95em;">
+                            <i class="fas fa-id-badge me-1 text-secondary"></i>{{ s.roll_number }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
+        {% endfor %}
     </div>
+    {% else %}
+        <div class="alert alert-info">No students available.</div>
+    {% endif %}
+</div>
 {% endblock body %}

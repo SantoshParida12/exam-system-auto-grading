@@ -2,7 +2,7 @@
 
 {% block title %}Professor Dashboard{% endblock title %}
 {% block navbar_title %}{{ prof.username }}{% endblock navbar_title %}
-{% block navitem_title %}Dashboard{% endblock navitem_title %}
+
 
 {% block buttons %}
     <a class="btn btn-outline-light" href="{% url 'main:logoutUser' %}">
@@ -44,7 +44,7 @@
                             <i class="fa fa-file-text fa-3x text-success"></i>
                         </div>
                         <h5 class="card-title">Exams</h5>
-                        <p class="card-text text-muted">Create and manage examinations</p>
+                        <p class="card-text text-muted">Create and manage the examinations</p>
                         <a href="{% url 'prof:view_exams' %}" class="btn btn-success btn-block">
                             <i class="fa fa-arrow-right"></i> Manage Exams
                         </a>
