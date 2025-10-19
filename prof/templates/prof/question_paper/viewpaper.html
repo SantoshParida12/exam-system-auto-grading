@@ -5,25 +5,33 @@
 {% block navitem_title %}{{ qpaper.qPaperTitle }}{% endblock navitem_title %}
 
 {% block buttons %}
-    <a class="btn btn-info my-sm-0 mx-2" href="{% url 'prof:view_all_ques' %}" target="_blank">All Questions</a>
-    <a class="btn btn-light my-sm-0" href="{% url 'prof:make_paper' %}">Question Papers</a>
+    <a class="btn btn-outline-light btn-sm me-2" href="{% url 'prof:make_paper' %}"><i class="fa fa-file"></i> Papers</a>
+    <a class="btn btn-info btn-sm" href="{% url 'prof:view_all_ques' %}" target="_blank"><i class="fa fa-list"></i> All Questions</a>
 {% endblock buttons %}
 
 {% block body %}
-    <div class="container-fluid">
+    <div class="container py-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+            <h2 class="h4 mb-0">{{ qpaper.qPaperTitle }}</h2>
+        </div>
 
-        <div class="list-group">
+        <div class="row g-4">
             {% for ques in question_list %}
-            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start my-2">
-                <div class="d-flex w-100 justify-content-between">
-                    <h3 class="mb-1">{{ ques.question }}</h3>
+            <div class="col-12">
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-body p-4">
+                        <h5 class="mb-2">{{ ques.question }}</h5>
+                        <div class="text-muted small">Question Type: {{ ques.question_type }}</div>
+                    </div>
                 </div>
-                <p class="mb-1">
-                    <strong>Question Type:</strong> {{ ques.question_type }}
-                </p>
-            </a>
+            </div>
             {% empty %}
-            <h3>No Questions added to Paper</h3>
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fa fa-file-circle-question fa-4x text-muted mb-3"></i>
+                    <h3 class="text-muted">No Questions added to Paper</h3>
+                </div>
+            </div>
             {% endfor %}
         </div>
     </div>

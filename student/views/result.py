@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponseForbidden
+from django.db import models
 from main.models import *
 from django.contrib.auth.models import User
 from student.models import *
@@ -40,8 +41,37 @@ def results(request):
             'exam': viewExam, 'student': student, 'questions_with_answers': questions_with_answers
         })
 
+    # Aggregate stats for results overview
+    completed_count = studentExamList.count()
+    latest_exam = studentExamList.order_by('-completed_at', '-started_at').first()
+    latest_score = latest_exam.score if latest_exam else 0
+    # Compute average percentage across completed exams
+    totals = studentExamList.aggregate(total_score=models.Sum('score'), total_max=models.Sum('total_marks_possible'))
+    total_score_sum = totals.get('total_score') or 0
+    total_max_sum = totals.get('total_max') or 0
+    average_percentage = int(round((total_score_sum / total_max_sum) * 100)) if total_max_sum else 0
+
+    def pct_to_grade(p):
+        if p >= 90:
+            return 'A+'
+        if p >= 80:
+            return 'A'
+        if p >= 70:
+            return 'B'
+        if p >= 60:
+            return 'C'
+        return 'D'
+
+    average_grade = pct_to_grade(average_percentage)
+    success_rate = int(round((studentExamList.filter(score__gte=1).count() / completed_count) * 100)) if completed_count else 0
+
     return render(request, 'student/result/results.html', {
-        'student': student, 'paper': studentExamList
+        'student': student,
+        'paper': studentExamList,
+        'completed_count': completed_count,
+        'latest_score': latest_score,
+        'average_grade': average_grade,
+        'success_rate': success_rate,
     })
 
 

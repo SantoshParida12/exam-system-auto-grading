@@ -1,0 +1,197 @@
+{% extends 'prof/base/base.html' %}
+
+{% block title %}Exam Results Dashboard{% endblock title %}
+{% block navbar_title %}Exam Results Dashboard{% endblock navbar_title %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fa fa-chart-bar"></i> Exam Results Overview
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if exam_stats %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>Exam Name</th>
+                                        <th>Total Students</th>
+                                        <th>Completed</th>
+                                        <th>Passed</th>
+                                        <th>Avg Score</th>
+                                        <th>Completion Rate</th>
+                                        <th>Pass Rate</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stat in exam_stats %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ stat.exam.name }}</strong><br>
+                                            <small class="text-muted">
+                                                {{ stat.exam.start_time|date:"M d, Y" }} - 
+                                                {{ stat.exam.end_time|date:"M d, Y" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info">{{ stat.total_students }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-success">{{ stat.completed_students }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-primary">{{ stat.passed_students }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar {% if stat.average_score >= 80 %}bg-success{% elif stat.average_score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ stat.average_score }}%"
+                                                     aria-valuenow="{{ stat.average_score }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    {{ stat.average_score }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-info" 
+                                                     role="progressbar" 
+                                                     style="width: {{ stat.completion_rate }}%"
+                                                     aria-valuenow="{{ stat.completion_rate }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    {{ stat.completion_rate }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-success" 
+                                                     role="progressbar" 
+                                                     style="width: {{ stat.pass_rate }}%"
+                                                     aria-valuenow="{{ stat.pass_rate }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    {{ stat.pass_rate }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'prof:view_exam_results' stat.exam.id %}" 
+                                                   class="btn btn-sm btn-primary" title="View Results">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'prof:export_results' stat.exam.id %}" 
+                                                   class="btn btn-sm btn-success" title="Export CSV">
+                                                    <i class="fa fa-download"></i>
+                                                </a>
+                                                <a href="{% url 'prof:results_analytics' stat.exam.id %}" 
+                                                   class="btn btn-sm btn-info" title="Analytics">
+                                                    <i class="fa fa-chart-line"></i>
+                                                </a>
+                                                <a href="{% url 'prof:evaluate_exam' stat.exam.id %}" 
+                                                   class="btn btn-sm btn-warning" title="Evaluate">
+                                                    <i class="fa fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle"></i>
+                            No exam results found. Create and conduct exams to see results here.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats Cards -->
+    {% if exam_stats %}
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ exam_stats|length }}</h4>
+                            <p class="mb-0">Total Exams</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa fa-book fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ exam_stats|length|add:0|default:0 }}</h4>
+                            <p class="mb-0">Completed Exams</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>
+                                {% widthratio exam_stats|length 1 1 %}
+                            </h4>
+                            <p class="mb-0">Total Students</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>
+                                {% if exam_stats %}
+                                    {% for stat in exam_stats %}{{ stat.average_score|floatformat:1 }}{% endfor %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </h4>
+                            <p class="mb-0">Avg Score</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa fa-chart-bar fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock body %}

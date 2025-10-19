@@ -6,121 +6,181 @@
 {% block navitem_title %}Exams{% endblock navitem_title %}
 
 {% block buttons %}
-    <button type="button" class="btn btn-primary mx-3" id="updateButton"
-    onclick="smoothScroll(document.getElementById('exams'))">View all Exams</button>
-    <a class="btn btn-light " href="{% url 'prof:index' %}">Home</a>
+    <a class="btn btn-outline-light btn-sm me-2" href="{% url 'prof:index' %}"><i class="fa fa-home"></i> Home</a>
+    <a class="btn btn-primary btn-sm" href="#exams"><i class="fa fa-list"></i> View all Exams</a>
 {% endblock buttons %}
 
 {% block body %}
-    <div class="container-fluid">
-        <h2 style="font-style: italic;" class="alert alert-secondary my-1" align="center">Create a new exam</h2>
-        <div style="margin-left:10%; margin-right: 10%;">
-
-            <div style = "font-weight: bold;" class="container d-flex h-100 row justify-content-center col-20">
-                <form style = "width:100%;" method="POST">
+    <div class="container py-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+            <h2 class="h4 mb-0">Create a new exam</h2>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10 col-sm-12">
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-body p-4">
+                    <form method="POST" class="needs-validation" novalidate>
                     {% csrf_token %}
-                    <div class="form-group">
-                        <label for="{{ examform.name.id_for_label }}">Exam Name:</label>
-                        {{ examform.name }}
-                        {% if examform.name.errors %}
-                            <div class="alert alert-danger">{{ examform.name.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="form-group">
-                        <label for="{{ examform.total_marks.id_for_label }}">Total Marks:</label>
-                        {{ examform.total_marks }}
-                        {% if examform.total_marks.errors %}
-                            <div class="alert alert-danger">{{ examform.total_marks.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="form-group">
-                        <label for="{{ examform.duration.id_for_label }}">Duration (minutes):</label>
-                        {{ examform.duration }}
-                        {% if examform.duration.errors %}
-                            <div class="alert alert-danger">{{ examform.duration.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="form-group">
-                        <label for="{{ examform.question_paper.id_for_label }}">Question Paper:</label>
-                        {{ examform.question_paper }}
-                        {% if examform.question_paper.errors %}
-                            <div class="alert alert-danger">{{ examform.question_paper.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="form-group">
-                        <label for="{{ examform.student_group.id_for_label }}">Student Groups:</label>
-                        {{ examform.student_group }}
-                        {% if examform.student_group.errors %}
-                            <div class="alert alert-danger">{{ examform.student_group.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="form-group">
-                        <label for="{{ examform.start_time.id_for_label }}">Start Time:</label>
-                        {{ examform.start_time }}
-                        {% if examform.start_time.errors %}
-                            <div class="alert alert-danger">{{ examform.start_time.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="form-group">
-                        <label for="{{ examform.end_time.id_for_label }}">End Time:</label>
-                        {{ examform.end_time }}
-                        {% if examform.end_time.errors %}
-                            <div class="alert alert-danger">{{ examform.end_time.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <input class="btn btn-success" type="submit" value="Create">
-                </form>
-            </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label" for="{{ examform.name.id_for_label }}">Exam Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-heading"></i></span>
+                                {{ examform.name }}
+                            </div>
+                            <div class="form-text">Give your exam a clear, descriptive title.</div>
+                            {% if examform.name.errors %}
+                                <div class="invalid-feedback d-block">{{ examform.name.errors }}</div>
+                            {% endif %}
+                        </div>
 
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ examform.total_marks.id_for_label }}">Total Marks</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-calculator"></i></span>
+                                {{ examform.total_marks }}
+                            </div>
+                            {% if examform.total_marks.errors %}
+                                <div class="invalid-feedback d-block">{{ examform.total_marks.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ examform.duration.id_for_label }}">Duration (minutes)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-clock"></i></span>
+                                {{ examform.duration }}
+                            </div>
+                            {% if examform.duration.errors %}
+                                <div class="invalid-feedback d-block">{{ examform.duration.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ examform.question_paper.id_for_label }}">Question Paper</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-file-lines"></i></span>
+                                {{ examform.question_paper }}
+                            </div>
+                            {% if examform.question_paper.errors %}
+                                <div class="invalid-feedback d-block">{{ examform.question_paper.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ examform.student_group.id_for_label }}">Student Groups</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-users"></i></span>
+                                {{ examform.student_group }}
+                            </div>
+                            {% if examform.student_group.errors %}
+                                <div class="invalid-feedback d-block">{{ examform.student_group.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ examform.start_time.id_for_label }}">Start Time</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                {{ examform.start_time }}
+                            </div>
+                            <div class="form-text">Use your local date/time format.</div>
+                            {% if examform.start_time.errors %}
+                                <div class="invalid-feedback d-block">{{ examform.start_time.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+
+                        <div class="col-12">
+                            <div class="d-grid d-sm-flex gap-2">
+                                <button class="btn btn-success" type="submit">
+                                    <i class="fa fa-plus"></i> Create Exam
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    </form>
+                    </div>
+                </div>
+            </div>
         </div>
         <div id='exams'>
-            <h2 class="alert alert-dark my-3" style="font-style: italic" align="center">Exams available</h2>
-            <div style = "width: 100%; margin-left:10%; margin-right: 10%;">
-                <form class="form-inline my-2">
-                    <input id="searchExam" class="form-control mr-sm-2" type="search" placeholder="Search Exam"
-                        aria-label="Search">
-                    <a class="btn btn-dark" href="{% url 'prof:view_groups' %}" target="_blank">View
-                        Groups</a>
-                </form>
-                <div class="row">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 my-4">
+                <h2 class="h4 mb-0">Exams available</h2>
+                <div class="d-flex align-items-center gap-2">
+                    <input id="searchExam" class="form-control" type="search" placeholder="Search exams or papers" aria-label="Search">
+                    <a class="btn btn-dark" href="{% url 'prof:view_groups' %}" target="_blank">
+                            <i class="fa fa-users"></i> View Groups
+                        </a>
+                </div>
+            </div>
+            <div class="row g-4">
                     {% for t in exams %}
-                    <div class="card my-3 mx-5 col-sm-3">
-                        <h3 class="card-header">{{ t.name }}</h3>
-                        <div class="card-body">
+                    <div class="col-xl-4 col-lg-6 col-md-6">
+                        <div class="card h-100 shadow-sm border-0 rounded-4 exam-card" data-name="{{ t.name|lower }}" data-paper="{{ t.question_paper.qPaperTitle|lower }}">
+                        <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h5 class="mb-0"><i class="fa fa-file-lines text-primary me-2"></i>{{ t.name }}</h5>
+                                <div class="d-flex gap-2">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ t.total_marks }} marks</span>
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ t.duration }} min</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body pt-3">
 
                             <h6 class="card-subtitle mb-2 text-muted">
                                 Start : {{ t.start_time }}<br>
                                 Expiry : {{ t.end_time }}
                             </h6>
-                            <p class="card-text">
-                                Total Marks : {{t.total_marks}}<br>
-                                Duration : {{t.duration}}<br>
-                                Question Paper : <a
-                                    href="{% url 'prof:view_specific_paper' t.question_paper.id %}">{{ t.question_paper.qPaperTitle }}</a><br>
-                                Student Group(s) :
-                                {% for group in t.student_group.all %}
-                                {{ group.category_name }}
-                                {% endfor %}
-                            </p>
-                            <a href="{% url 'prof:edit_exam' t.id %}" class="card-link btn btn-info">Edit</a>
-                            <a href="{% url 'prof:evaluate_exam' t.id %}" class="card-link btn btn-success" title="View Student Answers">
-                                <i class="fa fa-eye"></i> View Answers
-                            </a>
+                            <div class="small text-muted mb-3">
+                                <div>Total Marks: {{t.total_marks}}</div>
+                                <div>Duration: {{t.duration}} min</div>
+                                <div>Question Paper: <a
+                                    href="{% url 'prof:view_specific_paper' t.question_paper.id %}">{{ t.question_paper.qPaperTitle }}</a></div>
+                                <div>Student Group(s):
+                                    {% for group in t.student_group.all %}
+                                        <span class="badge bg-secondary me-1">{{ group.category_name }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pt-0 pb-4">
+                            <div class="d-grid gap-2 d-md-flex">
+                                <a href="{% url 'prof:evaluate_exam' t.id %}" class="btn btn-success btn-sm" title="View Student Answers">
+                                    <i class="fa fa-eye"></i> View Answers
+                                </a>
+                                <a href="{% url 'prof:edit_exam' t.id %}" class="btn btn-info btn-sm">
+                                    <i class="fa fa-edit"></i> Edit
+                                </a>
+                            </div>
+                        </div>
                         </div>
                     </div>
                     {% empty %}
-                    </br>
-                    <div style="width:100%; margin-left: 5%;">
-                        <h3>No exams</h3>
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="fa fa-book fa-4x text-muted mb-3"></i>
+                            <h3 class="text-muted">No Exams Available</h3>
+                            <p class="text-muted">Create your first exam to get started.</p>
+                        </div>
                     </div>
                     {% endfor %}
-                </div>
             </div>
         </div>
     </div>
-    <script src="//cdn.bootcss.com/jquery/3.0.0/jquery.min.js"></script>
-    <script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src="//cdn.bootcss.com/moment.js/2.17.1/moment.min.js"></script>
-    <script src="//cdn.bootcss.com/bootstrap-datetimepicker/4.17.44/js/bootstrap-datetimepicker.min.js"></script>
-    <script src="{% static 'prof/js/exams.js' %}"></script>
+    <script>
+    (function(){
+        var input = document.getElementById('searchExam');
+        if (!input) return;
+        input.addEventListener('input', function(){
+            var term = (this.value || '').toLowerCase();
+            var cards = document.querySelectorAll('.exam-card');
+            cards.forEach(function(card){
+                var name = card.getAttribute('data-name') || '';
+                var paper = card.getAttribute('data-paper') || '';
+                var match = !term || name.indexOf(term) !== -1 || paper.indexOf(term) !== -1;
+                card.parentElement.style.display = match ? '' : 'none';
+            });
+        });
+    })();
+    </script>
 {% endblock body %}

@@ -5,11 +5,16 @@
     box-sizing: border-box;
 }
 
-body {
+html, body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #ffffff;
+    background: #ffffff !important;
     min-height: 100vh;
     overflow-x: hidden;
+}
+
+body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
 }
 
 /* Background Animation */
@@ -71,6 +76,7 @@ body {
     justify-content: center;
     padding: 20px;
     position: relative;
+    background: #ffffff !important;
 }
 
 /* Login Container */
@@ -85,7 +91,7 @@ body {
 
 /* Login Card */
 .login-card {
-    background: #ffffff;
+    background: #ffffff !important;
     border-radius: 24px;
     padding: 40px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);

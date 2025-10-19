@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 class Question_DB(models.Model):
     # added question number for help in question paper
-    professor = models.ForeignKey(User, limit_choices_to={'groups__name': "Professor"}, on_delete=models.CASCADE, null=True)
+    professor = models.ForeignKey(User, limit_choices_to={'groups__name': "Professor"}, on_delete=models.PROTECT, null=False)
     qno = models.AutoField(primary_key=True)
     question = models.TextField(max_length=1000)  # Changed from CharField to TextField for longer questions
     question_type = models.CharField(max_length=20, choices=[('SUBJECTIVE', 'Subjective')], default='SUBJECTIVE')
@@ -14,13 +14,14 @@ class Question_DB(models.Model):
         question_text = str(self.question)
         return f'Question No.{self.qno}: {question_text[:50]}...' if len(question_text) > 50 else f'Question No.{self.qno}: {question_text}'
 
-    def delete(self, *args, **kwargs):
-        raise Exception("Deletion of questions is not allowed.")
+    # Explicit deletion is allowed but guarded by views/admin permissions. No implicit deletes.
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+        import logging
+        logger = logging.getLogger(__name__)
         prof_username = getattr(self.professor, 'username', 'None')
-        print(f"[DEBUG][MODEL] Question saved: qno={self.qno}, professor={prof_username}")
+        logger.info(f"Question saved: qno={self.qno}, professor={prof_username}")
 
 
 class QForm(ModelForm):

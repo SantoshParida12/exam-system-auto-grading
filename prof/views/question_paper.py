@@ -64,12 +64,34 @@ def view_paper(request):
     prof = request.user
 
     if request.method == 'POST':
-        papertitle = request.POST['title']
-        ques_paper = Question_Paper.objects.get(professor=prof, qPaperTitle=papertitle)
+        papertitle = request.POST.get('title')
+        if papertitle:
+            ques_paper = Question_Paper.objects.filter(professor=prof, qPaperTitle=papertitle).first()
+            if ques_paper:
+                return render(request, 'prof/question_paper/viewpaper.html', {
+                    'qpaper': ques_paper, 'question_list': ques_paper.questions.all(), 'prof': prof
+                })
+        return redirect('prof:make_paper')
 
-        return render(request, 'prof/question_paper/viewpaper.html', {
-            'qpaper': ques_paper, 'question_list': ques_paper.questions.all(), 'prof': prof
-        })
+    # Handle GET gracefully
+    paper_id = request.GET.get('paper_id')
+    papertitle = request.GET.get('title')
+    if paper_id:
+        try:
+            paper = Question_Paper.objects.get(professor=prof, pk=paper_id)
+            return render(request, 'prof/question_paper/viewpaper.html', {
+                'qpaper': paper, 'question_list': paper.questions.all(), 'prof': prof
+            })
+        except Question_Paper.DoesNotExist:
+            return redirect('prof:make_paper')
+    if papertitle:
+        ques_paper = Question_Paper.objects.filter(professor=prof, qPaperTitle=papertitle).first()
+        if ques_paper:
+            return render(request, 'prof/question_paper/viewpaper.html', {
+                'qpaper': ques_paper, 'question_list': ques_paper.questions.all(), 'prof': prof
+            })
+
+    return redirect('prof:make_paper')
 
 
 

@@ -75,18 +75,25 @@ def view_all_ques(request):
     prof = request.user
 
     if request.method == 'POST':
-        Q_No = int(request.POST['qno'])
-        sum_ = 1 + Question_DB.objects.filter(professor=prof).count()  # type: ignore
+        qno_raw = (request.POST.get('qno') or '').strip()
+        try:
+            Q_No = int(qno_raw)
+        except ValueError:
+            messages.error(request, 'Invalid question number.')
+            return redirect('prof:view_all_ques')
 
-        for i in range(Q_No+1, sum_):
-            ques = Question_DB.objects.filter(  # type: ignore
-                professor=prof, qno=int(i)).first()
-            ques.qno -= 1
-            ques.save()
+        # Ensure the target question exists
+        target = Question_DB.objects.filter(professor=prof, qno=Q_No).first()  # type: ignore
+        if not target:
+            messages.error(request, 'Question not found.')
+            return redirect('prof:view_all_ques')
 
-        sum_ -= 1
-
+        # Delete selected question (use queryset delete to avoid custom delete guard)
         Question_DB.objects.filter(professor=prof, qno=Q_No).delete()  # type: ignore
+        messages.success(request, f'Question #{Q_No} deleted successfully.')
+
+    # Ensure any legacy questions without owner are assigned to this professor (single-professor setup)
+    Question_DB.objects.filter(professor__isnull=True).update(professor=prof)  # type: ignore
 
     return render(request, 'prof/question/view_all_questions.html', {
         'question_db': Question_DB.objects.filter(professor=prof), 'prof': prof  # type: ignore

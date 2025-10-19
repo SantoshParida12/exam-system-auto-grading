@@ -6,12 +6,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <title>{% block title %}{% endblock title %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+
+    <!-- Font Awesome 5.15.4 (fixed version for your icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'main/css/responsive-fixes.css' %}">
 </head>
 
 <body>
+    <style>
+    :root { --radius: .75rem; }
+    .btn { border-radius: var(--radius); }
+    .navbar .btn { border-radius: .5rem; }
+    .icon-sm { font-size: 0.875rem; }
+    body.theme-dark { background-color: #121212; color: #e8e8e8; }
+    body.theme-dark .navbar { background-color: #0f0f0f !important; }
+    body.theme-dark .card { background-color: #1e1e1e; color: #e8e8e8; }
+    </style>
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <a class="navbar-brand" href="#">{% block nav_title %}{% endblock nav_title %}</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
@@ -26,13 +43,39 @@
                 </li>
             </ul>
             <form class="form-inline my-2 my-lg-0">
-                <a href={% block url %}{% endblock url %} class="btn btn-info my-2 my-sm-0">{% block action %}{% endblock action %}</a>
+                <button id="studentThemeToggle" class="btn btn-outline-light btn-sm mr-2" type="button" title="Toggle theme"><i class="fa fa-moon"></i></button>
+                <a href="{% block url %}{% endblock url %}" class="btn btn-info my-2 my-sm-0">
+                    {% block action %}{% endblock action %}
+                </a>
             </form>
         </div>
     </nav>
 
+    <!-- Main Body -->
     {% block body %}
     {% endblock body %}
+
+    {% block extra_js %}
+    {% endblock extra_js %}
+
+    <!-- JS Dependencies -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
+    <script>
+    (function(){
+      try {
+        var k='theme';
+        var s=localStorage.getItem(k);
+        if (s==='dark') document.body.classList.add('theme-dark');
+        var b=document.getElementById('studentThemeToggle');
+        if (b) b.addEventListener('click', function(){
+          var d=document.body.classList.toggle('theme-dark');
+          localStorage.setItem(k, d?'dark':'light');
+        });
+      } catch(e) {}
+    })();
+    </script>
 </body>
 
 </html>

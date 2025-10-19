@@ -1,0 +1,243 @@
+{% extends 'prof/base/base.html' %}
+
+{% block title %}{{ student.username }} - {{ exam.name }}{% endblock title %}
+{% block navbar_title %}{{ student.username }} - {{ exam.name }} Results{% endblock navbar_title %}
+
+{% block body %}
+<div class="container-fluid">
+    <!-- Student Info Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fa fa-user"></i> Student Results - {{ student.username }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Student Information</h5>
+                            <p><strong>Name:</strong> {{ student.first_name }} {{ student.last_name }}</p>
+                            <p><strong>Username:</strong> {{ student.username }}</p>
+                            <p><strong>Email:</strong> {{ student.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Exam Performance</h5>
+                            <p><strong>Total Score:</strong> {{ exam_result.total_score }}/{{ exam_result.max_possible_score }}</p>
+                            <p><strong>Percentage:</strong> {{ exam_result.percentage|floatformat:2 }}%</p>
+                            <p><strong>Grade:</strong> 
+                                <span class="badge badge-{% if exam_result.grade_letter in 'A+' %}success{% elif exam_result.grade_letter in 'AB' %}primary{% elif exam_result.grade_letter in 'C' %}warning{% else %}danger{% endif %} badge-lg">
+                                    {{ exam_result.grade_letter }}
+                                </span>
+                            </p>
+                            <p><strong>Status:</strong> 
+                                {% if exam_result.is_passed %}
+                                    <span class="badge badge-success">Passed</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Failed</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h4>{{ exam_result.total_questions }}</h4>
+                    <p class="mb-0">Total Questions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4>{{ exam_result.questions_attempted }}</h4>
+                    <p class="mb-0">Attempted</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h4>{{ exam_result.questions_correct }}</h4>
+                    <p class="mb-0">Correct</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h4>{{ exam_result.questions_partial }}</h4>
+                    <p class="mb-0">Partial</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bars -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fa fa-chart-bar"></i> Completion Rate</h6>
+                </div>
+                <div class="card-body">
+                    <div class="progress" style="height: 30px;">
+                        <div class="progress-bar bg-info" 
+                             role="progressbar" 
+                             style="width: {{ exam_result.completion_rate }}%"
+                             aria-valuenow="{{ exam_result.completion_rate }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ exam_result.completion_rate|floatformat:1 }}%
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ exam_result.questions_attempted }} out of {{ exam_result.total_questions }} questions attempted</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fa fa-chart-bar"></i> Accuracy Rate</h6>
+                </div>
+                <div class="card-body">
+                    <div class="progress" style="height: 30px;">
+                        <div class="progress-bar bg-success" 
+                             role="progressbar" 
+                             style="width: {{ exam_result.accuracy_rate }}%"
+                             aria-valuenow="{{ exam_result.accuracy_rate }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ exam_result.accuracy_rate|floatformat:1 }}%
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ exam_result.questions_correct }} correct out of {{ exam_result.questions_attempted }} attempted</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="{% url 'prof:view_exam_results' exam.id %}" class="btn btn-secondary">
+                    <i class="fa fa-arrow-left"></i> Back to Exam Results
+                </a>
+                <a href="{% url 'prof:evaluate_exam' exam.id %}" class="btn btn-warning">
+                    <i class="fa fa-edit"></i> Edit Grades
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Answers -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fa fa-list"></i> Detailed Answers</h5>
+                </div>
+                <div class="card-body">
+                    {% if answers %}
+                        {% for answer_data in answers %}
+                        <div class="card mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Question {{ forloop.counter }}</h6>
+                                {% if answer_data.answer %}
+                                    <div>
+                                        <span class="badge badge-{% if answer_data.answer.marks >= 4 %}success{% elif answer_data.answer.marks >= 2 %}warning{% else %}danger{% endif %}">
+                                            {{ answer_data.answer.marks }}/{{ answer_data.answer.max_marks }}
+                                        </span>
+                                        {% if answer_data.answer.is_auto_graded %}
+                                            <span class="badge badge-info">Auto</span>
+                                        {% endif %}
+                                        {% if answer_data.answer.is_teacher_graded %}
+                                            <span class="badge badge-warning">Manual</span>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <h6>Question:</h6>
+                                <p>{{ answer_data.question.question }}</p>
+                                
+                                {% if answer_data.answer %}
+                                    <hr>
+                                    <h6>Student's Answer:</h6>
+                                    
+                                    {% if answer_data.answer.text_answer %}
+                                        <div class="alert alert-light">
+                                            <strong>Text Answer:</strong><br>
+                                            <div style="white-space: pre-wrap;">{{ answer_data.answer.text_answer }}</div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if answer_data.answer.image_answer %}
+                                        <div class="alert alert-light">
+                                            <strong>Image Answer:</strong><br>
+                                            <img src="{{ answer_data.answer.image_answer.url }}" 
+                                                 class="img-fluid mb-2" 
+                                                 style="max-width: 400px; border: 1px solid #ddd;">
+                                            
+                                            {% if answer_data.answer.ocr_text %}
+                                                <div class="mt-2">
+                                                    <strong>OCR Extracted Text:</strong><br>
+                                                    <div class="alert alert-info" style="white-space: pre-wrap;">{{ answer_data.answer.ocr_text }}</div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if answer_data.answer.feedback %}
+                                        <div class="alert alert-warning">
+                                            <strong>Automated Feedback:</strong><br>
+                                            {{ answer_data.answer.feedback }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if answer_data.answer.teacher_feedback %}
+                                        <div class="alert alert-success">
+                                            <strong>Teacher Feedback:</strong><br>
+                                            {{ answer_data.answer.teacher_feedback }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <strong>Marks:</strong> {{ answer_data.answer.marks }}/{{ answer_data.answer.max_marks }} 
+                                            ({{ answer_data.answer.get_percentage|floatformat:1 }}%)
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Submitted:</strong> {{ answer_data.answer.submitted_at|date:"M d, Y H:i" }}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-danger">
+                                        <i class="fa fa-exclamation-triangle"></i>
+                                        No answer submitted for this question.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle"></i>
+                            No answers found for this student.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}

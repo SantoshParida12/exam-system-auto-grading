@@ -20,13 +20,25 @@ def exams(request):
     studentExamsList = StuExam_DB.objects.filter(student=student)  # type: ignore
 
     if request.method == 'POST' and not request.POST.get('papertitle', False):
-        paper = request.POST['paper']
+        paper = request.POST.get('paper', '').strip()
+        if not paper:
+            messages.error(request, 'Please select a valid exam.')
+            return redirect('student:exams')
+        
         print(f"Attempting exam: {paper}")  # Debug print
         
         try:
-            stuExam = StuExam_DB.objects.get(examname=paper, student=student)  # type: ignore
-            qPaper = stuExam.qpaper
+            # Resolve exam and paper first
             examMain = Exam_Model.objects.get(name=paper)  # type: ignore
+            stuExam, created = StuExam_DB.objects.get_or_create(
+                examname=paper,
+                student=student,
+                defaults={'qpaper': examMain.question_paper, 'score': 0, 'completed': 0}  # type: ignore
+            )  # type: ignore
+            qPaper = stuExam.qpaper or examMain.question_paper
+            if stuExam.qpaper is None and qPaper is not None:
+                stuExam.qpaper = qPaper
+                stuExam.save()
 
             # TIME COMPARISON - Temporarily disabled for testing
             exam_start_time = examMain.start_time
@@ -49,10 +61,10 @@ def exams(request):
             stuExam.save()
             print(f"Reset exam {paper} completion status for new attempt")
             
-            # Clear any existing questions for this exam attempt
+            # Clear any existing questions for this exam attempt and (re)seed
             stuExam.questions.all().delete()
 
-            qPaperQuestionsList = qPaper.questions.all()
+            qPaperQuestionsList = qPaper.questions.all() if qPaper else Question_DB.objects.none()
             print(f"Found {qPaperQuestionsList.count()} questions")
             
             for ques in qPaperQuestionsList:
@@ -72,9 +84,15 @@ def exams(request):
                 'qpaper': qPaper, 'question_list': stuExam.questions.all(), 'student': student, 'exam': paper, 'min': mins, 'sec': secs
             })
             
+        except StuExam_DB.DoesNotExist:  # type: ignore
+            messages.error(request, 'Exam not found or you are not enrolled in this exam.')
+            return redirect('student:exams')
+        except Exam_Model.DoesNotExist:  # type: ignore
+            messages.error(request, 'Exam configuration not found.')
+            return redirect('student:exams')
         except Exception as e:
             print(f"Error: {e}")
-            messages.error(request, f"Error starting exam: {e}")
+            messages.error(request, 'An error occurred while starting the exam. Please try again.')
             return redirect('student:exams')
 
     elif request.method == 'POST' and request.POST.get('papertitle', False):
@@ -82,6 +100,7 @@ def exams(request):
         title = request.POST['papertitle']
         stuExam = StuExam_DB.objects.get(examname=paper, student=student)  # type: ignore
         qPaper = stuExam.qpaper
+        examMain = Exam_Model.objects.get(name=paper)  # type: ignore
 
         # Check if student actually submitted answers
         submitted_answers = False
@@ -127,15 +146,17 @@ def exams(request):
                         print(f"[DEBUG] Image validation: {is_valid}, {error_msg}")
                         if is_valid:
                             subj_answer.image_answer = image_file
-                            subj_answer.text_answer = None
                             # Extract OCR text
                             ocr_text, ocr_error = extract_text_from_image(image_file)
                             print(f"[DEBUG] OCR result: '{ocr_text}', Error: {ocr_error}")
                             if ocr_text:
                                 subj_answer.ocr_text = ocr_text
-                                print(f"[DEBUG] Saved OCR text.")
+                                # Auto-populate text_answer field with OCR text
+                                subj_answer.text_answer = ocr_text
+                                print(f"[DEBUG] Saved OCR text and auto-populated text_answer field.")
                             elif ocr_error:
                                 subj_answer.ocr_text = "OCR processing failed. Please check image quality."
+                                subj_answer.text_answer = "OCR processing failed. Please check image quality."
                                 print(f"[DEBUG] OCR failed: {ocr_error}")
                         else:
                             messages.error(request, f"Image error for question {question.pk}: {error_msg}")
@@ -152,8 +173,14 @@ def exams(request):
         
         if submitted_answers:
             # Student submitted answers - grade them using TF-IDF
+            
             total_score = 0
             graded_questions = 0
+            questions_attempted = 0
+            questions_correct = 0
+            questions_partial = 0
+            questions_incorrect = 0
+            total_questions = stuExam.questions.count()
             
             for question in stuExam.questions.all():
                 # Get student's answer for this question
@@ -167,6 +194,8 @@ def exams(request):
                 ).first()
                 
                 if student_answer:
+                    questions_attempted += 1
+                    
                     # Get reference answers for this question
                     reference_answers = get_reference_answers_for_question(original_question)
                     
@@ -179,34 +208,93 @@ def exams(request):
                         # Store the grade and feedback
                         student_answer.marks = score
                         student_answer.feedback = feedback
+                        student_answer.is_auto_graded = True
+                        student_answer.graded_at = timezone.now()
                         student_answer.save()
+                        
+                        # Categorize question performance
+                        if score >= 4:  # Assuming 5 is max marks
+                            questions_correct += 1
+                        elif score >= 2:
+                            questions_partial += 1
+                        else:
+                            questions_incorrect += 1
                         
                         print(f"Question {question.pk}: Score = {score:.1f}%, Feedback = {feedback}")
                     else:
                         print(f"No reference answers found for question {question.pk}")
+                        questions_incorrect += 1
             
-            # Calculate total marks
+            # Calculate total marks and update exam
+            max_possible_score = total_questions * 5  # Assuming 5 marks per question
+            
             if graded_questions > 0:
-                total_marks = total_score  # sum of marks for all questions
-                stuExam.score = int(total_marks)
-                print(f"Total marks: {total_marks} (out of {graded_questions * 5})")
+                stuExam.score = int(total_score)
+                stuExam.total_marks_possible = max_possible_score
+                print(f"Total marks: {total_score} (out of {max_possible_score})")
             else:
                 stuExam.score = 0
+                stuExam.total_marks_possible = max_possible_score
                 print("No questions were graded")
             
-            # Mark as completed
+            # Mark as completed and set completion time
             stuExam.completed = 1
+            stuExam.is_graded = True
+            stuExam.completed_at = timezone.now()
             stuExam.save()
+            
+            # Create or update ExamResults record
+            exam_results, created = ExamResults.objects.get_or_create(
+                exam=examMain,
+                student=student,
+                defaults={
+                    'student_exam': stuExam,
+                    'total_questions': total_questions,
+                    'questions_attempted': questions_attempted,
+                    'questions_correct': questions_correct,
+                    'questions_partial': questions_partial,
+                    'questions_incorrect': questions_incorrect,
+                    'total_score': stuExam.score,
+                    'max_possible_score': max_possible_score,
+                    'is_completed': True,
+                    'is_graded': True,
+                    'completed_at': timezone.now(),
+                    'graded_at': timezone.now(),
+                }
+            )
+            
+            if not created:
+                # Update existing record
+                exam_results.total_questions = total_questions
+                exam_results.questions_attempted = questions_attempted
+                exam_results.questions_correct = questions_correct
+                exam_results.questions_partial = questions_partial
+                exam_results.questions_incorrect = questions_incorrect
+                exam_results.total_score = stuExam.score
+                exam_results.max_possible_score = max_possible_score
+                exam_results.is_completed = True
+                exam_results.is_graded = True
+                exam_results.completed_at = timezone.now()
+                exam_results.graded_at = timezone.now()
+                exam_results.save()
+            
             print(f"Exam {paper} marked as completed with total marks: {stuExam.score}")
+            print(f"ExamResults created/updated for student {student.username}")
         else:
-            # Student didn't submit any answers - keep as incomplete
-            stuExam.completed = 0
+            # No answers submitted: automatically mark exam completed with score 0
+            total_questions = stuExam.questions.count()
+            max_possible_score = total_questions * 5  # Assuming 5 marks per question
+            stuExam.score = 0
+            stuExam.total_marks_possible = max_possible_score
+            stuExam.completed = 1
+            stuExam.is_graded = True
+            stuExam.completed_at = timezone.now()
             stuExam.save()
-            print(f"Exam {paper} kept as incomplete - no answers submitted")
-            messages.warning(request, "No answers were submitted. The exam remains incomplete.")
+            print(f"Exam {paper} auto-graded as 0 due to no answers submitted")
+            messages.info(request, "No answers were submitted. The exam has been marked as 0.")
 
         return render(request, 'student/result/result.html', {
-            'Title': title, 'Score': f'{stuExam.score}' if submitted_answers else 'Incomplete', 'student': student
+            'Title': title, 'Score': f'{stuExam.score}', 'student': student
         })
 
     return render(request, 'student/exam/viewexam.html', {

@@ -7,6 +7,7 @@ from .question import urlpatterns as question_urls
 from .question_paper import urlpatterns as question_paper_urls
 from .group import urlpatterns as group_urls
 from .student import urlpatterns as student_urls
+from .results import urlpatterns as results_urls
 
 app_name = 'prof'
 
@@ -19,3 +20,4 @@ urlpatterns += question_paper_urls
 urlpatterns += question_urls
 urlpatterns += group_urls
 urlpatterns += student_urls
+urlpatterns += results_urls

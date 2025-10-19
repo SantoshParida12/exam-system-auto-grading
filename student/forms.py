@@ -43,5 +43,15 @@ class SubjectiveAnswerForm(forms.ModelForm):
             
             # Store OCR text in cleaned_data
             cleaned_data['ocr_text'] = ocr_text
+            
+            # Auto-populate text_answer field with OCR text if no text was provided
+            if not text and ocr_text:
+                cleaned_data['text_answer'] = ocr_text
+                print(f"[DEBUG] Auto-populated text_answer with OCR text: '{ocr_text[:50]}...'")
+            elif text and ocr_text:
+                # If both text and OCR text exist, append OCR text to existing text
+                combined_text = f"{text}\n\n[OCR Extracted Text]:\n{ocr_text}"
+                cleaned_data['text_answer'] = combined_text
+                print(f"[DEBUG] Combined existing text with OCR text")
         
         return cleaned_data 

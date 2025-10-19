@@ -29,8 +29,8 @@
               <div class="alert alert-warning">
                 <i class="fa fa-lightbulb-o"></i>
                 <strong>Instructions:</strong> You can submit your answer as text, an image, or both. 
-                If you upload an image, our OCR system will automatically extract text from it to help with grading.
-                Only one submission is allowed per question.
+                <strong>If you upload an image, our OCR system will automatically extract text and populate the text field above.</strong>
+                You can then edit the extracted text as needed. Only one submission is allowed per question.
               </div>
               
               <div class="form-group">
@@ -58,10 +58,13 @@
                 <small class="form-text text-muted">
                   <i class="fa fa-info-circle"></i>
                   Upload a clear image of your handwritten answer. Supported formats: JPEG, PNG, BMP (Max 10MB).
-                  For best OCR results, ensure good lighting and clear handwriting.
+                  For best OCR results, ensure good lighting and clear handwriting. 
+                  <strong>The extracted text will automatically appear in the text field above.</strong>
                 </small>
               </div>
               
+              <!-- Live OCR preview disabled by request -->
+
               <div class="text-center mt-4">
                 <button type="submit" class="btn btn-success btn-lg">
                   <i class="fa fa-check"></i> Submit Answer
@@ -76,4 +79,25 @@
       </div>
     </div>
   </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageUpload = document.getElementById('image-upload');
+    const textAnswer = document.getElementById('{{ form.text_answer.id_for_label }}');
+    // Live OCR preview disabled
+    
+    if (imageUpload) {
+        imageUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                // Live OCR disabled: no preview, rely on submission-time OCR
+            } else {
+                // No-op
+            }
+        });
+    }
+});
+</script>
 {% endblock %} 

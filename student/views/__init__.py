@@ -42,7 +42,6 @@ def index(request):
                 for ques in questions_in_paper:
                     # add all the questions from the prof to student database
                     studentQuestion = Stu_Question.objects.create(#type: ignore
-                        qno=ques.qno,
                         question=ques.question,
                         question_type=ques.question_type,
                         student=student,

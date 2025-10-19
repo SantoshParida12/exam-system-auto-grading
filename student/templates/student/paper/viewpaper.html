@@ -21,6 +21,11 @@
                             <strong>Important:</strong> Please answer all questions before submitting. If you submit without answering, the exam will remain incomplete.
                         </div>
                         
+                        <div class="alert alert-warning">
+                            <i class="fa fa-lightbulb-o"></i>
+                            OCR will be processed after you submit. Live OCR preview has been disabled.
+                        </div>
+                        
                         <input type="hidden" id="mins" value="{{ min }}">
                         <input type="hidden" id="secs" value="{{ sec }}">
                         <input type="hidden" id="total-questions" value="{{ question_list|length }}">
@@ -44,6 +49,7 @@
                                                 name="{{ ques.question }}" 
                                                 rows="4" 
                                                 placeholder="Write your detailed answer here..."
+                                                style="resize: vertical; min-height: 100px; word-wrap: break-word;"
                                                 onchange="checkAnswers()"></textarea>
                                         </div>
                                         
@@ -51,16 +57,22 @@
                                             <label for="image_{{ ques.pk }}" class="font-weight-bold">
                                                 <i class="fa fa-camera text-primary"></i> Or Upload Image Answer:
                                             </label>
-                                            <input 
-                                                type="file" 
-                                                class="form-control-file image-upload" 
-                                                id="image_{{ ques.pk }}" 
-                                                name="image_{{ ques.pk }}" 
-                                                accept="image/*"
-                                                data-question="{{ forloop.counter }}"
-                                                onchange="previewImage(this)">
+                                            <div class="custom-file">
+                                                <input 
+                                                    type="file" 
+                                                    class="custom-file-input image-upload" 
+                                                    id="image_{{ ques.pk }}" 
+                                                    name="image_{{ ques.pk }}" 
+                                                    accept="image/*"
+                                                    data-question="{{ forloop.counter }}"
+                                                    onchange="previewImage(this)">
+                                                <label class="custom-file-label" for="image_{{ ques.pk }}">
+                                                    Choose image file...
+                                                </label>
+                                            </div>
                                             <small class="form-text text-muted">
-                                                Upload a clear image of your handwritten answer. Supported formats: JPEG, PNG, BMP (Max 10MB)
+                                                Upload a clear image of your handwritten answer. Supported formats: JPEG, PNG, BMP (Max 5MB).
+                                                <strong>The extracted text will automatically appear in the text field above.</strong>
                                             </small>
                                         </div>
                                         
@@ -71,10 +83,6 @@
                                                 </div>
                                                 <div class="card-body">
                                                     <img id="preview_{{ ques.pk }}" class="img-fluid mb-2" style="max-width: 300px; border: 1px solid #ddd;">
-                                                    <div id="ocr_preview_{{ ques.pk }}" class="alert alert-info" style="display: none;">
-                                                        <strong>OCR Preview:</strong>
-                                                        <div id="ocr_text_{{ ques.pk }}" class="mt-2"></div>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -152,8 +160,16 @@
             var questionNum = input.getAttribute('data-question');
             var previewDiv = document.getElementById('image_preview_' + questionNum);
             var previewImg = document.getElementById('preview_' + input.id.split('_')[1]);
-            var ocrPreview = document.getElementById('ocr_preview_' + input.id.split('_')[1]);
-            var ocrText = document.getElementById('ocr_text_' + input.id.split('_')[1]);
+            
+            // Update file input label
+            var label = input.nextElementSibling;
+            if (label && label.tagName === 'LABEL') {
+                if (input.files && input.files[0]) {
+                    label.textContent = input.files[0].name;
+                } else {
+                    label.textContent = 'Choose image file...';
+                }
+            }
             
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
@@ -161,15 +177,6 @@
                 reader.onload = function(e) {
                     previewImg.src = e.target.result;
                     previewDiv.style.display = 'block';
-                    
-                    // Show loading message for OCR
-                    ocrPreview.style.display = 'block';
-                    ocrText.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing image with OCR...';
-                    
-                    // Simulate OCR processing (in real implementation, this would be done server-side)
-                    setTimeout(function() {
-                        ocrText.innerHTML = '<em>OCR processing will be performed when you submit the exam. Please ensure your handwriting is clear and the image is well-lit.</em>';
-                    }, 1000);
                 };
                 
                 reader.readAsDataURL(input.files[0]);

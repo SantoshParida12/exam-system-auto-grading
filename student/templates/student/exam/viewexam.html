@@ -1,70 +1,358 @@
 {% extends 'student/base/base.html' %}
+{% load static %}
 
-{% block title %}Home{% endblock title %}
-{% block nav_title %} Exams {% endblock nav_title %}
+{% block title %}My Exams{% endblock title %}
+{% block nav_title %}My Exams{% endblock nav_title %}
 {% block url %}{% url 'student:index' %}{% endblock url %}
-{% block action %}Home{% endblock action %}
+{% block action %}Dashboard{% endblock action %}
 
 {% block body %}
-   <div class="container-fluid my-2">
-        <!-- Debug info -->
-        <div class="alert alert-info">
-            <h4>Debug Info:</h4>
-            <p>Total exams found: {{ paper|length }}</p>
-            <p>Completed exams: {{ paper|length|add:"0" }}</p>
-            <p>Available exams: {{ paper|length|add:"0" }}</p>
-        </div>
-        
-        <div id="completed_exams" class="alert alert-primary">
-            <h3 align="center">Tests Completed</h3>
-            <ol class="list-group">
-                {% for i in paper %}
-                {% if  i.completed == 1 %}
-                <li class="list-group-item list-group-item-action my-1 text-center">
-                    <strong>{{ i.examname }}</strong>
-                    <br>
-                    <small class="text-muted">Score: {{ i.score }} | Status: Completed</small>
-                    <br>
-                    <form method="POST" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="hidden" value="{{ i.examname }}" name="paper">
-                        <input class="btn btn-warning btn-sm" type="submit" value="Retake Exam">
-                    </form>
-                </li>
-                {% endif %}
-                {% endfor %}
-            </ol>
-        </div>
-        <div id="upcoming_exams" class="my-6 alert alert-secondary">
-            <h3 align="center" >UpComing Exams</h3>
-            <ol class="list-group">
-                {% for i in paper %}
-                {% if  i.completed == 0 %}
-                    <li class="list-group-item list-group-item-action my-1 text-center">
-                        <strong>{{ i.examname }}</strong>
-                        <br>
-                        <small class="text-muted">Status: Not completed ({{ i.completed }})</small>
-                        <form method="POST">
-                            {% csrf_token %}
-                            <input type="hidden" value="{{ i.examname }}" name="paper">
-                            <input class="btn btn-info" type="submit" value="Attempt">
-                        </form>
-                    </li>
-                {% endif %}
-                {% endfor %}
-            </ol>
-        </div>
-        
-        <!-- Show all exams for debugging -->
-        <div class="alert alert-warning">
-            <h4>All Exams (Debug):</h4>
-            <ul>
-                {% for i in paper %}
-                <li>{{ i.examname }} - Completed: {{ i.completed }} - Score: {{ i.score }}</li>
-                {% empty %}
-                <li>No exams found</li>
-                {% endfor %}
-            </ul>
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="display-4 font-weight-bold text-primary mb-3">
+                    <i class="fas fa-graduation-cap mr-3"></i>My Exams
+                </h1>
+                <p class="lead text-muted">Track your progress and take your assessments</p>
+            </div>
         </div>
     </div>
+
+    <!-- Stats Overview -->
+    <div class="row mb-5">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stats-card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="stats-icon bg-primary">
+                        <i class="fas fa-book-open text-white"></i>
+                    </div>
+                    <h3 class="mt-3 mb-1">{{ paper|length }}</h3>
+                    <p class="text-muted mb-0">Total Exams</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stats-card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="stats-icon bg-success">
+                        <i class="fas fa-check-circle text-white"></i>
+                    </div>
+                    <h3 class="mt-3 mb-1">
+                        {% for i in paper %}{% if i.completed == 1 %}1{% endif %}{% empty %}0{% endfor %}
+                    </h3>
+                    <p class="text-muted mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stats-card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="stats-icon bg-warning">
+                        <i class="fas fa-clock text-white"></i>
+                    </div>
+                    <h3 class="mt-3 mb-1">
+                        {% for i in paper %}{% if i.completed == 0 %}1{% endif %}{% empty %}0{% endfor %}
+                    </h3>
+                    <p class="text-muted mb-0">Pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stats-card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="stats-icon bg-info">
+                        <i class="fas fa-chart-line text-white"></i>
+                    </div>
+                    <h3 class="mt-3 mb-1">
+                        {% for i in paper %}{% if i.completed == 1 %}{{ i.score|default:0 }}{% endif %}{% empty %}0{% endfor %}
+                    </h3>
+                    <p class="text-muted mb-0">Latest Score</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Exams Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="section-header mb-4">
+                <h2 class="h3 font-weight-bold text-dark">
+                    <i class="fas fa-rocket text-primary mr-2"></i>Available Exams
+                </h2>
+                <p class="text-muted">Start your assessments and track your progress</p>
+            </div>
+            
+            {% for i in paper %}
+                {% if i.completed == 0 %}
+                <div class="exam-card mb-4">
+                    <div class="card border-0 shadow-sm h-100 exam-card-available">
+                        <div class="card-body p-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <div class="exam-info">
+                                        <h4 class="card-title mb-2 font-weight-bold">
+                                            <i class="fas fa-file-alt text-primary mr-2"></i>{{ i.examname }}
+                                        </h4>
+                                        <div class="exam-meta mb-3">
+                                            <span class="badge badge-light mr-2">
+                                                <i class="fas fa-calendar mr-1"></i>Ready to Start
+                                            </span>
+                                            <span class="badge badge-secondary">
+                                                <i class="fas fa-clock mr-1"></i>Not Attempted
+                                            </span>
+                                        </div>
+                                        <p class="text-muted mb-0">
+                                            <i class="fas fa-info-circle mr-1"></i>
+                                            Click "Start Exam" to begin your assessment. Make sure you have a stable internet connection.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-md-right">
+                                    <form method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" value="{{ i.examname }}" name="paper">
+                                        <button type="submit" class="btn btn-primary btn-lg px-4 py-2 start-exam-btn">
+                                            <i class="fas fa-play mr-2"></i>Start Exam
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% empty %}
+                <div class="empty-state text-center py-5">
+                    <div class="empty-icon mb-4">
+                        <i class="fas fa-inbox fa-4x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted">No Available Exams</h4>
+                    <p class="text-muted">There are currently no exams available for you to take.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Completed Exams Section -->
+    {% for i in paper %}
+        {% if i.completed == 1 %}
+            {% if forloop.first %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="section-header mb-4">
+                        <h2 class="h3 font-weight-bold text-dark">
+                            <i class="fas fa-check-circle text-success mr-2"></i>Completed Exams
+                        </h2>
+                        <p class="text-muted">Review your completed assessments and retake if needed</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+
+    <div class="row">
+        {% for i in paper %}
+            {% if i.completed == 1 %}
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="exam-card">
+                    <div class="card border-0 shadow-sm h-100 exam-card-completed">
+                        <div class="card-body p-4">
+                            <div class="exam-header mb-3">
+                                <h5 class="card-title mb-2 font-weight-bold">
+                                    <i class="fas fa-trophy text-warning mr-2"></i>{{ i.examname }}
+                                </h5>
+                                <div class="exam-status">
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check mr-1"></i>Completed
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="score-display mb-4">
+                                <div class="score-circle">
+                                    <div class="score-number">{{ i.score|default:0 }}</div>
+                                    <div class="score-label">Score</div>
+                                </div>
+                            </div>
+                            
+                            <div class="exam-actions">
+                                <form method="POST" class="d-inline-block mr-2">
+                                    {% csrf_token %}
+                                    <input type="hidden" value="{{ i.examname }}" name="paper">
+                                    <button type="submit" class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-redo mr-1"></i>Retake Exam
+                                    </button>
+                                </form>
+                                <a href="{% url 'student:results' %}" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-chart-bar mr-1"></i>View Results
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- No completed exams message -->
+    {% if not paper %}
+        <div class="empty-state text-center py-5">
+            <div class="empty-icon mb-4">
+                <i class="fas fa-graduation-cap fa-4x text-muted"></i>
+            </div>
+            <h4 class="text-muted">No Exams Available</h4>
+            <p class="text-muted">You don't have any exams assigned yet. Contact your instructor for more information.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Custom CSS for modern styling -->
+<style>
+.section-header {
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 1rem;
+}
+
+.stats-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 15px;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+.stats-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 1.5rem;
+}
+
+.exam-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 15px;
+}
+
+.exam-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+}
+
+.exam-card-available {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.exam-card-available .card-title {
+    color: white;
+}
+
+.exam-card-available .text-muted {
+    color: rgba(255,255,255,0.8) !important;
+}
+
+.exam-card-completed {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.exam-card-completed .card-title {
+    color: white;
+}
+
+.start-exam-btn {
+    background: rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.3);
+    color: white;
+    transition: all 0.3s ease;
+    border-radius: 25px;
+    font-weight: 600;
+}
+
+.start-exam-btn:hover {
+    background: rgba(255,255,255,0.3);
+    border-color: rgba(255,255,255,0.5);
+    color: white;
+    transform: scale(1.05);
+}
+
+.score-display {
+    display: flex;
+    justify-content: center;
+}
+
+.score-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid rgba(255,255,255,0.3);
+}
+
+.score-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+}
+
+.score-label {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.8);
+}
+
+.empty-state {
+    background: #f8f9fa;
+    border-radius: 15px;
+    margin: 2rem 0;
+}
+
+.empty-icon {
+    opacity: 0.5;
+}
+
+.badge {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+}
+
+.exam-actions .btn {
+    border-radius: 20px;
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+}
+
+@media (max-width: 768px) {
+    .exam-card .row {
+        text-align: center;
+    }
+    
+    .exam-card .col-md-4 {
+        margin-top: 1rem;
+    }
+    
+    .start-exam-btn {
+        width: 100%;
+    }
+    
+    .exam-actions .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
 {% endblock body %}

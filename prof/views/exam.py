@@ -22,6 +22,12 @@ def view_exams(request):
         if form.is_valid():
             exam = form.save(commit=False)
             exam.professor = prof
+            # Compute end_time = start_time + duration minutes
+            try:
+                from datetime import timedelta
+                exam.end_time = exam.start_time + timedelta(minutes=exam.duration)
+            except Exception:
+                pass
             exam.save()
             form.save_m2m()
             return redirect('prof:view_exams')
@@ -54,7 +60,14 @@ def edit_exam(request, exam_id):
         form = ExamForm(request.POST, instance=exam)
         if form.is_valid():
             print("[DEBUG][edit_exam] Changed data:", form.changed_data)
-            form.save()
+            exam_obj = form.save(commit=False)
+            try:
+                from datetime import timedelta
+                exam_obj.end_time = exam_obj.start_time + timedelta(minutes=exam_obj.duration)
+            except Exception:
+                pass
+            exam_obj.save()
+            form.save_m2m()
             # Ensure all student exam records use the updated question paper and questions
             from student.models import StuExam_DB, Stu_Question
             for stu_exam in StuExam_DB.objects.filter(examname=exam.name): # type: ignore

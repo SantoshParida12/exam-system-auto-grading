@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from .question import Question_DB
 
 class ReferenceAnswer(models.Model):
-    question = models.ForeignKey(Question_DB, on_delete=models.CASCADE, related_name='reference_answers')
+    question = models.ForeignKey(Question_DB, on_delete=models.PROTECT, related_name='reference_answers')
     professor = models.ForeignKey(User, limit_choices_to={'groups__name': "Professor"}, on_delete=models.CASCADE)
     
     # Reference answer can be either text or image

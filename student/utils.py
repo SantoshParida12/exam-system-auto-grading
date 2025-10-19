@@ -184,17 +184,44 @@ def extract_text_from_image(image_file):
 
 def validate_image_file(image_file):
     """
-    Validate uploaded image file
+    Validate uploaded image file for security and format
     """
     try:
-        # Check file size (max 10MB)
-        if image_file.size > 10 * 1024 * 1024:
-            return False, "Image file size must be less than 10MB"
+        # Check file size (5MB limit)
+        max_size = 5 * 1024 * 1024  # 5MB in bytes
+        if image_file.size > max_size:
+            return False, "File size too large. Maximum size is 5MB."
         
-        # Check file type
-        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/bmp']
-        if image_file.content_type not in allowed_types:
-            return False, "Only JPEG, PNG, and BMP images are allowed"
+        # Check file extension
+        allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
+        file_extension = os.path.splitext(image_file.name)[1].lower()
+        if file_extension not in allowed_extensions:
+            return False, "Invalid file type. Only JPG, JPEG, PNG, GIF, and BMP files are allowed."
+        
+        # Check filename for security (no path traversal)
+        if '..' in image_file.name or '/' in image_file.name or '\\' in image_file.name:
+            return False, "Invalid filename. Please use a simple filename without special characters."
+        
+        # Try to open the image with PIL to validate it's a real image
+        try:
+            from PIL import Image
+            image = Image.open(image_file)
+            image.verify()  # Verify it's a valid image
+            
+            # Reset file pointer after verification
+            image_file.seek(0)
+            
+            # Check image dimensions (prevent extremely large images)
+            image_file.seek(0)
+            img = Image.open(image_file)
+            if img.width > 4000 or img.height > 4000:
+                return False, "Image dimensions too large. Maximum dimensions are 4000x4000 pixels."
+            
+            # Reset file pointer again
+            image_file.seek(0)
+            
+        except Exception as e:
+            return False, "Invalid image file. Please upload a valid image."
         
         return True, None
         

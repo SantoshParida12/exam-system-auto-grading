@@ -1,7 +1,7 @@
 from django.db import models
 from django.forms import ModelForm
 from django.contrib.auth.models import User
-from datetime import datetime
+from django.utils import timezone
 from .group import Special_Students
 from .question_paper import Question_Paper
 
@@ -12,8 +12,8 @@ class Exam_Model(models.Model):
     duration = models.IntegerField()
     question_paper = models.ForeignKey(Question_Paper, on_delete=models.CASCADE, related_name='exams')
     student_group = models.ManyToManyField(Special_Students, related_name='exams')
-    start_time = models.DateTimeField(default=datetime.now())
-    end_time = models.DateTimeField(default=datetime.now())
+    start_time = models.DateTimeField(default=timezone.now)
+    end_time = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.name
